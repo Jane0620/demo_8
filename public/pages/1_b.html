@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>學校班級與學生管理系統</title>
+  <link rel="stylesheet" href="/styles/main.css" />
+  <link rel="stylesheet" href="/styles/sidebar.css" />
+  <link rel="stylesheet" href="/styles/search.css" />
+  <script src="/js/sideBar.js?v=1"></script>
+  <script>
+    /* ENV_PLACEHOLDER */
+  </script>
+  <script>
+    console.log("window.env: ", window.env); // 這裡檢查是否已經有值
+  </script>
+
+  <!-- ✅ 載入 bootstrap 工具 -->
+  <script src="/js/bootstrap.js"></script>
+
+  <!-- ✅ 延後呼叫 loadModuleWhenEnvReady，等 window.env 確定存在 -->
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      loadModuleWhenEnvReady("../js/page_1-b.js?v=1");
+      loadModuleWhenEnvReady("../js/header.js?v=1");
+      loadModuleWhenEnvReady("../js/search.js?v=1");
+    });
+  </script>
+</head>
+
+<body>
+  <div class="main-content">
+    <div class="container">
+      <!-- Header 區域 -->
+      <header class="header" id="header-container">            
+      </header>
+
+        <!-- Sidebar 區域 -->
+        <div id="sidebar-container"></div>
+
+        <!-- Main 區域 -->
+        <main id="page-container">
+          <!-- 頁面內容將動態載入到這裡 -->
+          <div id="student-list-page">
+            <a href="./1_a.html" class="back-link" onclick="handleBackToClassList()">
+              &larr; 返回班級列表
+            </a>
+            <div class="card">
+              <div class="actions">
+                <h2 id="class-name-header">班級名稱</h2>
+              </div>
+              <div id="student-management" class="tab-content active">
+                <div class="search-container" id="search-container">
+                </div>
+                <div id="classes-container">
+                  <!-- 學生名單將動態插入到此處 -->
+                  <div class="loading">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                  </div>
+                  <div class="error-message" style="display: none;"></div>
+                </div>
+              </div>
+            </div>
+          </div>     
+        </main>
+      </div>
+    </div>
+  </div>
+  
+</body>
+
+</html>

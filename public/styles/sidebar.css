@@ -1,0 +1,85 @@
+/* 側邊欄基本樣式 */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 150px;
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-toggle {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    color: inherit;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.sidebar-toggle:hover {
+    background-color: #34495e;
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-item a {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    color: inherit;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.sidebar-item a:hover,
+.sidebar-item.active a {
+    background-color: #3498db;
+}
+
+.sidebar-item.active {
+    background-color: #3498db;
+    color: #ffffff; /* 確保文字顏色在藍底上清晰可見 */
+}
+
+.menu-icon {
+    margin-right: 10px;
+    font-size: 18px;
+}
+
+.main-content {
+    margin-left: 150px;
+    transition: margin-left 0.3s ease;
+    padding: 15px;
+}
+
+.main-content.expanded {
+    margin-left: 60px;
+}
+
+.menu-text {
+    font-size: 16px;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-150px);
+    }
+
+    .sidebar.expanded {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+}

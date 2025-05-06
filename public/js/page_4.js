@@ -176,7 +176,7 @@ async function initPage() {
         const result = await res.json();
         if (result.success) {
           alert("✅ 設定儲存成功，重新啟動伺服器");
-          
+          window.location.reload(); // 重新載入頁面
         } else {
           alert("❌ 儲存失敗：" + result.error);
         }

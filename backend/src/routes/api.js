@@ -4,10 +4,9 @@ import { loginToShis, getValidToken } from "../services/loginShis.js";
 
 import * as download from "../services/downloadShis.js";
 // upload
-import {
-  processStudentData,
-} from "../utils/dbHandlers.js"; // 封裝進資料庫
+import { processStudentData } from "../utils/dbHandlers.js"; // 封裝進資料庫
 import * as upload from "../services/uploadToShis.js";
+import { insertUploadLog } from "../services/insertDb.js"; // 封裝進資料庫
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -131,7 +130,9 @@ router.post("/save-student-data", async (req, res) => {
     res.json({ success: true, message: `成功儲存 ${savedCount} 筆資料` });
   } catch (err) {
     console.error("❌ 儲存資料時發生錯誤：", err);
-    res.status(500).json({ success: false, error: "儲存資料失敗", details: err.message });
+    res
+      .status(500)
+      .json({ success: false, error: "儲存資料失敗", details: err.message });
   }
 });
 
@@ -162,7 +163,18 @@ router.post("/upload-student-data", async (req, res) => {
     }
   } catch (err) {
     console.error("❌ 上傳資料時發生錯誤：", err);
-    res.status(500).json({ success: false, error: "上傳資料失敗", details: err.message });
+    res
+      .status(500)
+      .json({ success: false, error: "上傳資料失敗", details: err.message });
+    if (measurementType === "height-weight") {
+      const pendingData = await upload.getPendingWhData();
+      await upload.updateDatabaseStatus("wh", pendingData, 0);
+      insertUploadLog(pendingData, 0);
+    } else if (measurementType === "vision") {
+      const pendingData = await upload.getPendingSightData();
+      await upload.updateDatabaseStatus("sight", pendingData, 0);
+      insertUploadLog(pendingData, 0);
+    }
   }
 });
 
@@ -199,17 +211,35 @@ router.post("/save-and-upload", async (req, res) => {
     }
 
     if (uploadResult) {
-      res.json({ success: true, message: `成功儲存 ${savedCount} 筆並上傳資料` });
+      res.json({
+        success: true,
+        message: `成功儲存 ${savedCount} 筆並上傳資料`,
+      });
     } else {
-      res.json({ success: true, message: `成功儲存 ${savedCount} 筆資料，但沒有需要上傳的資料` });
+      res.json({
+        success: true,
+        message: `成功儲存 ${savedCount} 筆資料，但沒有需要上傳的資料`,
+      });
     }
-
   } catch (err) {
     console.error("❌ 儲存並上傳資料時發生錯誤：", err);
-    res.status(500).json({ success: false, error: "儲存並上傳資料失敗", details: err.message });
+    res
+      .status(500)
+      .json({
+        success: false,
+        error: "儲存並上傳資料失敗",
+        details: err.message,
+      });
+      if (measurementType === "height-weight") {
+        const pendingData = await upload.getPendingWhData();
+        await upload.updateDatabaseStatus("wh", pendingData, 0);
+        insertUploadLog(pendingData, 0);
+      } else if (measurementType === "vision") {
+        const pendingData = await upload.getPendingSightData();
+        await upload.updateDatabaseStatus("sight", pendingData, 0);
+        insertUploadLog(pendingData, 0);
+      }
   }
 });
-
-
 
 export default router;

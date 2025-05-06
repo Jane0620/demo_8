@@ -2,7 +2,8 @@
 import express from "express";
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
+// import { fileURLToPath } from "url";
+import { exec } from "child_process";
 
 const router = express.Router();
 const envPath = path.join(process.cwd(), ".env");
@@ -38,7 +39,6 @@ router.get("/", (req, res) => {
 // ✅ POST 修改設定
 router.post("/", (req, res) => {
   const updates = req.body;
-
   const allowedKeys = [
     "TYPE",
     "SCHOOL_ID",
@@ -53,23 +53,25 @@ router.post("/", (req, res) => {
     const envObj = parseEnvFile(original);
 
     for (const key of allowedKeys) {
-        if (key in updates) {
-            if (key === "UPLOAD_URL" && Array.isArray(updates[key])) {
-              envObj[key] = updates[key].join(",");
-            } else {
-              envObj[key] = updates[key];
-            }
-          }
-          
+      if (key in updates) {
+        if (key === "UPLOAD_URL" && Array.isArray(updates[key])) {
+          envObj[key] = updates[key].join(",");
+        } else {
+          envObj[key] = updates[key];
+        }
+      }
     }
 
     const newContent = stringifyEnv(envObj);
     fs.writeFileSync(envPath, newContent, "utf-8");
 
-    res.json({ success: true, message: ".env 已更新" });
+    res.json({ success: true, message: ".env 已更新，伺服器將重新啟動" });
+    
+
   } catch (err) {
     console.error("❌ 更新失敗：", err);
     res.status(500).json({ success: false, error: "寫入失敗" });
+    console.error("❌ 回應錯誤已發送:", { success: false, error: "寫入失敗" });
   }
 });
 

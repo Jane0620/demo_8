@@ -146,5 +146,8 @@ initPage();
           alert("儲存失敗：" + (result.error || "未知錯誤"));
         }
       })
-      .catch(err => handleFetchError(err, document.body, "儲存數據時發生錯誤"));
+      .catch(err => {handleFetchError(err, document.body, "儲存數據時發生錯誤");
+        alert("儲存數據時發生錯誤：" + err.message);
+        window.location.reload();
+      });
   }

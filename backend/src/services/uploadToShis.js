@@ -146,12 +146,12 @@ export async function uploadSightToShis(token, data) {
 
       return response.data;
     } else {
-      console.log("✅ 沒有需要上傳的 WH 資料。");
+      console.log("✅ 沒有需要上傳的 sight 資料。");
       return null;
     }
   } catch (err) {
     console.error(
-      "❌ 上傳 WH 資料到 SHIS 時發生錯誤：",
+      "❌ 上傳 sight 資料到 SHIS 時發生錯誤：",
       err.response?.data || err.message
     );
 
@@ -159,10 +159,10 @@ export async function uploadSightToShis(token, data) {
     // 注意：這裡需要再次查詢失敗的記錄，或者在 catch 區塊中處理 pendingData
     // 這部分邏輯需要根據你的錯誤處理需求來設計
     const pendingData = await getPendingSightData();
-    await updateDatabaseStatus("wh", pendingData, 0);
+    await updateDatabaseStatus("sight", pendingData, 0);
     insertUploadLog(pendingData, 0); // 紀錄上傳失敗的資料
     throw new Error(
-      "上傳 WH 資料到 SHIS 失敗: " + (err.response?.data?.error || err.message)
+      "上傳 sight 資料到 SHIS 失敗: " + (err.response?.data?.error || err.message)
     );
   }
 }

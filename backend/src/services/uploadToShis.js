@@ -41,6 +41,12 @@ export async function updateDatabaseStatus(tableName, students, successed) {
   }
 }
 
+export async function handleUploadError(measurementType, pendingData, errorMessage) {
+  console.error(`❌ 上傳 ${measurementType} 資料失敗：`, errorMessage);
+  await updateDatabaseStatus(measurementType, pendingData, 0);
+  insertUploadLog(pendingData, 0); // 可以將錯誤訊息也記錄到日誌中
+}
+
 // 上傳身高體重資料到 SHIS
 export async function uploadWhToShis(token) {
   try {
@@ -87,20 +93,9 @@ export async function uploadWhToShis(token) {
       return null;
     }
   } catch (err) {
-    console.error(
-      "❌ 上傳 WH 資料到 SHIS 時發生錯誤：",
-      err.response?.data || err.message
-    );
-
-    // 如果上傳失敗，你可能需要將這些記錄的 successed 狀態更新為 0
-    // 注意：這裡需要再次查詢失敗的記錄，或者在 catch 區塊中處理 pendingData
-    // 這部分邏輯需要根據你的錯誤處理需求來設計
     const pendingData = await getPendingWhData();
-    await updateDatabaseStatus("wh", pendingData, 0);
-    insertUploadLog(pendingData, 0); // 紀錄上傳失敗的資料
-    throw new Error(
-      "上傳 WH 資料到 SHIS 失敗: " + (err.response?.data?.error || err.message)
-    );
+    await handleUploadError("wh", err.message);
+    throw new Error("上傳 WH 資料到 SHIS 失敗: " + (err.message));
   }
 }
 
@@ -150,20 +145,9 @@ export async function uploadSightToShis(token, data) {
       return null;
     }
   } catch (err) {
-    console.error(
-      "❌ 上傳 sight 資料到 SHIS 時發生錯誤：",
-      err.response?.data || err.message
-    );
-
-    // 如果上傳失敗，你可能需要將這些記錄的 successed 狀態更新為 0
-    // 注意：這裡需要再次查詢失敗的記錄，或者在 catch 區塊中處理 pendingData
-    // 這部分邏輯需要根據你的錯誤處理需求來設計
     const pendingData = await getPendingSightData();
-    await updateDatabaseStatus("sight", pendingData, 0);
-    insertUploadLog(pendingData, 0); // 紀錄上傳失敗的資料
-    throw new Error(
-      "上傳 sight 資料到 SHIS 失敗: " + (err.response?.data?.error || err.message)
-    );
+    await handleUploadError("sight", pendingData, err.message);
+    throw new Error("上傳 sight 資料到 SHIS 失敗: " + (err.message));
   }
 }
 

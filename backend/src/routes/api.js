@@ -162,18 +162,22 @@ router.post("/upload-student-data", async (req, res) => {
       res.json({ success: true, message: "沒有需要上傳的資料" });
     }
   } catch (err) {
-    console.error("❌ 上傳資料時發生錯誤：", err);
+    console.error("❌ 儲存並上傳資料時發生錯誤：", err);
     res
       .status(500)
-      .json({ success: false, error: "上傳資料失敗", details: err.message });
+      .json({
+        success: false,
+        error: "儲存並上傳資料失敗",
+        details: err.message,
+      });
+
+    let pendingData;
     if (measurementType === "height-weight") {
-      const pendingData = await upload.getPendingWhData();
-      await upload.updateDatabaseStatus("wh", pendingData, 0);
-      insertUploadLog(pendingData, 0);
+      pendingData = await upload.getPendingWhData();
+      await upload.handleUploadError("wh", pendingData, err.message);
     } else if (measurementType === "vision") {
-      const pendingData = await upload.getPendingSightData();
-      await upload.updateDatabaseStatus("sight", pendingData, 0);
-      insertUploadLog(pendingData, 0);
+      pendingData = await upload.getPendingSightData();
+      await upload.handleUploadError("sight", pendingData, err.message);
     }
   }
 });
@@ -230,15 +234,15 @@ router.post("/save-and-upload", async (req, res) => {
         error: "儲存並上傳資料失敗",
         details: err.message,
       });
-      if (measurementType === "height-weight") {
-        const pendingData = await upload.getPendingWhData();
-        await upload.updateDatabaseStatus("wh", pendingData, 0);
-        insertUploadLog(pendingData, 0);
-      } else if (measurementType === "vision") {
-        const pendingData = await upload.getPendingSightData();
-        await upload.updateDatabaseStatus("sight", pendingData, 0);
-        insertUploadLog(pendingData, 0);
-      }
+
+    let pendingData;
+    if (measurementType === "height-weight") {
+      pendingData = await upload.getPendingWhData();
+      await upload.handleUploadError("wh", pendingData, err.message);
+    } else if (measurementType === "vision") {
+      pendingData = await upload.getPendingSightData();
+      await upload.handleUploadError("sight", pendingData, err.message);
+    }
   }
 });
 

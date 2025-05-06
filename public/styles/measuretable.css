@@ -8,36 +8,3 @@
   text-overflow: ellipsis; /* 超出內容顯示省略號 */
 }
 
-/* 點名欄（第一欄）設置較小的寬度 */
-.measure-table th:first-child,
-.measure-table td:first-child {
-  width: 50px; /* 點名欄寬度 */
-}
-
-/* 座號欄（第二欄）設置固定寬度 */
-.measure-table th:nth-child(2),
-.measure-table td:nth-child(2) {
-  width: 80px; /* 座號欄寬度 */
-}
-
-/* 姓名欄（第三欄）設置較大的寬度 */
-.measure-table th:nth-child(3),
-.measure-table td:nth-child(3) {
-  width: 150px; /* 姓名欄寬度 */
-}
-
-/* 性別欄（第四欄）設置固定寬度 */
-.measure-table th:nth-child(4),
-.measure-table td:nth-child(4) {
-  width: 80px; /* 性別欄寬度 */
-}
-
-/* 其他欄位（如身高、體重、檢測日期）設置自適應寬度 */
-.measure-table th:nth-child(5),
-.measure-table td:nth-child(5),
-.measure-table th:nth-child(6),
-.measure-table td:nth-child(6),
-.measure-table th:nth-child(7),
-.measure-table td:nth-child(7) {
-  width: auto; /* 自適應寬度 */
-}

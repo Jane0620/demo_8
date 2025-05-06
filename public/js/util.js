@@ -350,21 +350,65 @@ export function renderMeasureTable(container, students, isManualMode, options = 
 
   // 在表格渲染後，為點名checkbox添加事件監聽器
   if (isManualMode) {
-    const attendanceCheckboxes = container.querySelectorAll('.attendance-checkbox');
-    attendanceCheckboxes.forEach(checkbox => {
-      checkbox.addEventListener('change', (event) => {
+    const attendanceCheckboxes = container.querySelectorAll(
+      ".attendance-checkbox"
+    );
+    attendanceCheckboxes.forEach((checkbox) => {
+      checkbox.addEventListener("change", (event) => {
         const studentId = event.target.dataset.studentId;
         const isChecked = event.target.checked;
+
         // 更新 students 陣列中對應學生的 attended 屬性
-        students = students.map(student =>
-          student.pid === studentId ? { ...student, attended: isChecked } : student
+        students = students.map((student) =>
+          student.pid === studentId
+            ? { ...student, attended: isChecked }
+            : student
         );
-        // 重新渲染表格以更新唯讀狀態
-        renderMeasureTable(container, students, true); // 注意這裡強制傳 true，因為我們希望根據 checkbox 狀態控制唯讀
+
+        // 找到對應的表格行
+        const row = event.target.closest("tr");
+        if (row) {
+          // 根據測量類型更新輸入欄位的 readonly 屬性
+          if (measurementType === "height-weight") {
+            const heightInput = row.querySelector(".height-input");
+            const weightInput = row.querySelector(".weight-input");
+            if (heightInput) {
+              heightInput.readOnly = !isChecked;
+            }
+            if (weightInput) {
+              weightInput.readOnly = !isChecked;
+            }
+          } else if (measurementType === "vision") {
+            const leftNakedInput = row.querySelector(".sight-input.left-naked");
+            const rightNakedInput = row.querySelector(".sight-input.right-naked");
+            const leftInput = row.querySelector(".sight-input.left");
+            const rightInput = row.querySelector(".sight-input.right");
+            if (leftNakedInput) {
+              leftNakedInput.readOnly = !isChecked;
+            }
+            if (rightNakedInput) {
+              rightNakedInput.readOnly = !isChecked;
+            }
+            if (leftInput) {
+              leftInput.readOnly = !isChecked;
+            }
+            if (rightInput) {
+              rightInput.readOnly = !isChecked;
+            }
+          }
+
+          // 更新日期時間輸入框的 readonly 屬性
+          const dateInput = row.querySelector(".date-input");
+          if (dateInput) {
+            dateInput.readOnly = !isChecked;
+          }
+        }
       });
     });
   }
+  // container.innerHTML = tableHTML;
 }
+
 
 /**
  * 處理 Fetch 請求的錯誤
@@ -412,6 +456,11 @@ export function collectStudentData() {
 
   rows.forEach(row => {
     const checkbox = row.querySelector('.attendance-checkbox');
+
+    if (!checkbox || !checkbox.checked) {
+      return; // 如果 checkbox 不存在或未被勾選，則跳過當前行
+    }
+    
     const studentId = checkbox.getAttribute('data-student-id');
     const seatElement = row.querySelector('.seat');
 

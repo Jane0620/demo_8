@@ -8,26 +8,38 @@ async function initPage() {
   // 分離模板為兩個部分
   const getRadioTemplate = () => `
     <label class="measurement">📇量測類型
-      <input type="radio" name="connection" value="height-weight" /><span>身高體重</span>
-      <input type="radio" name="connection" value="vision" /><span>視力</span>
+      <input type="radio" name="connection" value="height-weight" id="height-weight" ${
+        window.env.MEASUREMENT_TYPE === "height-weight" ? "checked" : ""
+      } /><span>身高體重</span>
+      <input type="radio" name="connection" value="vision" id="vision" ${
+        window.env.MEASUREMENT_TYPE === "vision" ? "checked" : ""
+      } /><span>視力</span>
     </label>
     <div class="settings-menu">
     <label>🏫學校名稱：
-      <input type="text" name="measurement" placeholder="請輸入學校名稱" />
+      <input type="text" name="measurement" placeholder="請輸入學校名稱" value=${
+        window.env.SCHOOL_NAME
+      }>
     </label>
     <label>🏫學校代碼：
-      <input type="text" name="measurement" placeholder="請輸入學校代碼" />
+      <input type="text" name="measurement" placeholder="請輸入學校代碼" value=${
+        window.env.SCHOOL_ID
+      }>
     </label>
     </div>
     <div class="api-plus settings-menu">
     <label>⬇️API-KEY：
-      <input type="text" name="measurement" placeholder="請輸入API-KEY" />
+      <input type="password" name="measurement" placeholder="請輸入API-KEY" value=${
+        window.env.API_KEY
+      } />
     </label>
     <label>⬇️下載系統：
       <input type="text" name="measurement" placeholder="請輸入系統名稱" />
     </label>
     <label>⬇️下載網址：
-      <input type="text" name="measurement" placeholder="請輸入網址" />
+      <input type="text" name="measurement" placeholder="請輸入網址" value=${
+        window.env.SHIS_BASE_URL
+      } />
     </label>
     </div>
   `;
@@ -38,7 +50,7 @@ async function initPage() {
         <input type="text" name="measurement" placeholder="請輸入系統名稱" />
       </label>
       <label>⬆️上傳網址：
-        <input type="text" name="measurement" placeholder="請輸入網址" />
+        <input type="text" name="measurement" placeholder="請輸入網址" value=${window.env.SHIS_BASE_URL} />
         <button class="add-btn">➕</button>
         <button class="delete-btn">🗑️</button>
       </label>
@@ -100,7 +112,7 @@ async function initPage() {
           </label>
         </div>
       `;
-    }else if (activeTab === "upload-time") {
+    } else if (activeTab === "upload-time") {
       tabContentContainer.innerHTML = `
         <div id="upload-time" class="settings-menu">
           <label>🕧定時上傳時間
@@ -126,40 +138,52 @@ async function initPage() {
 
   onTabSwitch("student-management");
 
-  document.getElementById("save-settings").addEventListener("click", async () => {
-    const uploadUrls = Array.from(document.querySelectorAll('.api-plus input[placeholder="請輸入網址"]'))
-      .map(input => input.value.trim())
-      .filter(url => url); // 過濾空值
-  
-    const envData = {
-      TYPE: document.querySelector('input[name="connection"]:checked')?.value || "",
-      SCHOOL_NAME: document.querySelectorAll('input[placeholder="請輸入學校名稱"]')[0]?.value || "",
-      SCHOOL_ID: document.querySelectorAll('input[placeholder="請輸入學校代碼"]')[0]?.value || "",
-      API_KEY: document.querySelectorAll('input[placeholder="請輸入API-KEY"]')[0]?.value || "",
-      DOWNLOAD_URL: document.querySelectorAll('input[placeholder="請輸入網址"]')[0]?.value || "",
-      UPLOAD_URL: uploadUrls, // 多個網址，傳陣列
-    };
-  
-    try {
-      const res = await fetch("/api/env", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(envData),
-      });
-  
-      const result = await res.json();
-      if (result.success) {
-        alert("✅ 設定儲存成功，請重新啟動伺服器以生效");
-      } else {
-        alert("❌ 儲存失敗：" + result.error);
+  document
+    .getElementById("save-settings")
+    .addEventListener("click", async () => {
+      const uploadUrls = Array.from(
+        document.querySelectorAll('.api-plus input[placeholder="請輸入網址"]')
+      )
+        .map((input) => input.value.trim())
+        .filter((url) => url); // 過濾空值
+
+      const envData = {
+        TYPE:
+          document.querySelector('input[name="connection"]:checked')?.value ||
+          "",
+        SCHOOL_NAME:
+          document.querySelectorAll('input[placeholder="請輸入學校名稱"]')[0]
+            ?.value || "",
+        SCHOOL_ID:
+          document.querySelectorAll('input[placeholder="請輸入學校代碼"]')[0]
+            ?.value || "",
+        API_KEY:
+          document.querySelectorAll('input[placeholder="請輸入API-KEY"]')[0]
+            ?.value || "",
+        DOWNLOAD_URL:
+          document.querySelectorAll('input[placeholder="請輸入網址"]')[0]
+            ?.value || "",
+        UPLOAD_URL: uploadUrls, // 多個網址，傳陣列
+      };
+
+      try {
+        const res = await fetch("/api/env", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(envData),
+        });
+        console.log(envData);
+        const result = await res.json();
+        if (result.success) {
+          alert("✅ 設定儲存成功，重新啟動伺服器");
+          
+        } else {
+          alert("❌ 儲存失敗：" + result.error);
+        }
+      } catch (err) {
+        alert("❌ 錯誤：" + err.message);
       }
-    } catch (err) {
-      alert("❌ 錯誤：" + err.message);
-    }
-  });
- }
+    });
+}
 
 initPage();
-
-
-

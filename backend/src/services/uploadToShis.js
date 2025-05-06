@@ -107,41 +107,62 @@ export async function uploadWhToShis(token) {
 // 上傳視力資料到 SHIS
 export async function uploadSightToShis(token, data) {
   try {
-    console.log("🚀 上傳到 SHIS 的資料：", JSON.stringify(data, null, 2));
+    console.log("📤 後端開始查詢並上傳未成功的 WH 資料...");
 
-    const response = await axios.put(
-      `${process.env.SHIS_BASE_URL}/api/phi/sight/batch`,
-      data,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "X-API-KEY": process.env.API_KEY,
-          Authorization: `Bearer ${token}`,
-        },
+    // 1. 查詢資料庫中待上傳的 WH 資料 (包含 PKNO)
+    const pendingData = await getPendingSightData();
+    console.log("🚀 從資料庫查詢到的待上傳 WH 資料：", pendingData);
+
+    if (pendingData.length > 0) {
+      // 2. 格式化上傳資料
+      const normalizedData = normalizeStudentData(pendingData, "vision");
+      const payload = { CheckField: 1, Students: normalizedData };
+      console.log(
+        "🚀 格式化後準備上傳到 SHIS 的 sight 資料：",
+        JSON.stringify(payload, null, 2)
+      );
+      // 3. 上傳到 SHIS
+      const response = await axios.put(
+        `${process.env.SHIS_BASE_URL}/api/phi/sight/batch`,
+        payload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-KEY": process.env.API_KEY,
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.status !== 200) {
+        throw new Error(`上傳 SHIS 失敗，HTTP 狀態碼：${response.status}`);
       }
-    );
 
-    if (response.status !== 200) {
-      throw new Error(`上傳失敗，HTTP 狀態碼：${response.status}`);
+      console.log("✅ 上傳 SHIS WH 結果：", response.data);
+
+      // 4.更新資料庫的 successed 狀態
+      await updateDatabaseStatus("sight", pendingData, 1);
+      insertUploadLog(pendingData, 1); // 紀錄上傳成功的資料
+
+      return response.data;
+    } else {
+      console.log("✅ 沒有需要上傳的 WH 資料。");
+      return null;
     }
-
-    console.log("✅ 上傳結果：", response.data);
-
-    // 更新資料庫的 successed 狀態
-    await updateDatabaseStatus("sight", data.Students, 1);
-
-    return response.data;
   } catch (err) {
     console.error(
-      "❌ 上傳資料到 SHIS 時發生錯誤：",
+      "❌ 上傳 WH 資料到 SHIS 時發生錯誤：",
       err.response?.data || err.message
     );
 
-    // 更新資料庫的 successed 狀態為 0
-    await updateDatabaseStatus("sight", data.Students, 0);
-
+    // 如果上傳失敗，你可能需要將這些記錄的 successed 狀態更新為 0
+    // 注意：這裡需要再次查詢失敗的記錄，或者在 catch 區塊中處理 pendingData
+    // 這部分邏輯需要根據你的錯誤處理需求來設計
+    const pendingData = await getPendingSightData();
+    await updateDatabaseStatus("wh", pendingData, 0);
+    insertUploadLog(pendingData, 0); // 紀錄上傳失敗的資料
     throw new Error(
-      "上傳資料到 SHIS 失敗: " + (err.response?.data?.error || err.message)
+      "上傳 WH 資料到 SHIS 失敗: " + (err.response?.data?.error || err.message)
     );
   }
 }

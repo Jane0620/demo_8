@@ -6,6 +6,7 @@ import apiRoutes from "./routes/api.js";
 import { getValidToken } from "./services/loginShis.js";
 import fs from "fs";
 import envRoutes from "./routes/env.js";
+import { injectEnvVariables } from "./utils/injectEnvVariables.js"; // 引入注入環境變數的函數
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -48,55 +49,29 @@ app.get("/api/token", async (req, res) => {
 // 處理根路徑
 app.get("/", (req, res) => {
   const indexPath = path.join(frontendPath, "index.html");
-  let html = fs.readFileSync(indexPath, "utf-8");
-
-  // 確保有環境變數值，否則使用預設值
-const apiBaseUrl = process.env.API_BASE_URL || '';
-const schoolName = process.env.SCHOOL_NAME || '';
-const measurementType = process.env.TYPE || '';
-const schoolId = process.env.SCHOOL_ID || '';
-
-// 正則表達式替換環境變數
-html = html.replace(
-  /<script>\s*\/\*\s*ENV_PLACEHOLDER\s*\*\/\s*<\/script>/s,
-  `<script>
-    window.env = {
-      API_BASE_URL: "${apiBaseUrl}",
-      SCHOOL_NAME: "${schoolName}",
-      MEASUREMENT_TYPE: "${measurementType}",
-      SCHOOL_ID: "${schoolId}"
-    };
-    console.log("Server injected window.env:", window.env);
-  </script>`
-);
-  res.set("Cache-Control", "no-store");
-  res.send(html);
+  try {
+    let html = fs.readFileSync(indexPath, "utf-8");
+    html = injectEnvVariables(html);
+    res.set("Cache-Control", "no-store");
+    res.send(html);
+  } catch (error) {
+    console.error("Error reading index.html:", error);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
+// 處理 /pages/* 路徑
 app.get("/pages/*", (req, res) => {
   const pagePath = path.join(frontendPath, req.path);
-  let html = fs.readFileSync(pagePath, "utf-8");
-
-const apiBaseUrl = process.env.API_BASE_URL || '';
-const schoolName = process.env.SCHOOL_NAME || '';
-const measurementType = process.env.TYPE || '';
-const schoolId = process.env.SCHOOL_ID || '';
-
-html = html.replace(
-  /<script>\s*\/\*\s*ENV_PLACEHOLDER\s*\*\/\s*<\/script>/s,
-  `<script>
-    window.env = {
-      API_BASE_URL: "${apiBaseUrl}",
-      SCHOOL_NAME: "${schoolName}",
-      MEASUREMENT_TYPE: "${measurementType}",
-      SCHOOL_ID: "${schoolId}"
-    };
-    console.log("Server injected window.env:", window.env);
-  </script>`
-);
-
-  res.set("Cache-Control", "no-store");
-  res.send(html);
+  try {
+    let html = fs.readFileSync(pagePath, "utf-8");
+    html = injectEnvVariables(html);
+    res.set("Cache-Control", "no-store");
+    res.send(html);
+  } catch (error) {
+    console.error(`Error reading page: ${req.path}`, error);
+    res.status(404).send("Page Not Found");
+  }
 });
 
 // 設置靜態文件服務

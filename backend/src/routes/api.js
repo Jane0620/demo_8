@@ -8,6 +8,8 @@ import { processStudentData } from "../utils/dbHandlers.js"; // 封裝進資料�
 import * as upload from "../services/uploadToShis.js";
 import { insertUploadLog } from "../services/insertDb.js"; // 封裝進資料庫
 
+import { getAutoWhData } from "../services/serialPortRs232.js";
+
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -245,5 +247,10 @@ router.post("/save-and-upload", async (req, res) => {
     }
   }
 });
+
+// 開始接收資料
+router.get("/get-auto-data", async(req,res) => {
+  getAutoWhData();
+})
 
 export default router;

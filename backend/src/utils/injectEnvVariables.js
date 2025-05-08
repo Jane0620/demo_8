@@ -20,7 +20,7 @@ export function injectEnvVariables(html) {
           MEASUREMENT_TYPE: "${measurementType}",
           SCHOOL_ID: "${schoolId}"
         };
-        console.log("Server injected window.env:", window.env);
+        // console.log("Server injected window.env:", window.env);
       </script>`
   );
 }

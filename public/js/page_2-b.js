@@ -2,12 +2,16 @@ import {
   getAuthData,
   insertTable,
   fetchAndDisplayData,
-  renderMeasureTable,
   setupTabSwitching,
   handleFetchError,
   collectStudentData,
   domReady,
 } from "/js/util.js";
+import {
+  renderManualTable,
+  renderAutoTable, 
+  selectedStudentsForDetection
+} from "./measureTable.js";
 
 let students = [];
 let currentMode = { value: "auto" }; // 預設為自動輸入模式
@@ -41,34 +45,23 @@ async function initPage() {
     (data) => {
       students = data.map((student) => ({ ...student, attended: true })); // 預設所有學生為已點名
       if (students && students.length > 0) {
-        renderMeasureTable(
-          pageState.container,
-          students,
-          currentMode.value === "manual"
-        );
-
-        // 確保頁籤按鈕和內容已經存在後再初始化
+        // 初始模式一定是 auto，所以直接渲染自動輸入表格
+        pageState.container.innerHTML = ""; // 清空容器
+        renderAutoTable(pageState.container, students);
+        insertStartDectionButton();
+        // 現在設置頁籤切換
         setupTabSwitching({
           containerSelector: ".card",
-          tabButtonSelector: ".nav-tab", // 頁籤按鈕的選擇器
-          tabContentSelector: ".tab-content", // 頁籤內容的選擇器
+          tabButtonSelector: ".nav-tab",
+          tabContentSelector: ".tab-contents",
           onTabSwitch: (activeTab) => {
-            // console.log(`切換到頁籤: ${activeTab}`);
-            // 根據頁籤執行不同的行為
             if (activeTab === "student-management") {
-              // console.log('切換到自動輸入模式');
-              currentMode.value = "auto";
-              renderMeasureTable(pageState.container, students, false); // 移除第四個參數
+              measureAuto();
             } else if (activeTab === "attendance") {
-              // console.log('切換到手動輸入模式');
-              currentMode.value = "manual";
-              renderMeasureTable(pageState.container, students, true); // 移除第四個參數
+              measureManual();
             }
-            updateActionButton(); // 更新按鈕
           },
         });
-
-        updateActionButton(); // 初始化動作按鈕
       } else {
         insertTable(pageState.container, null, "找不到學生資料。");
       }
@@ -78,53 +71,143 @@ async function initPage() {
 }
 
 initPage();
-// 更新動作按鈕
-function updateActionButton() {
+// 插入動作按鈕
+function insertSaveUploadButton() {
   const actionButtonContainer = document.getElementById(
     "action-button-container"
   );
-
-  if (!actionButtonContainer) return;
-
-  if (currentMode.value === "auto") {
-    actionButtonContainer.innerHTML = `
-      <button id="start-detection" class="btn">開始偵測</button>
-    `;
-    const startDetectionButton = document.getElementById("start-detection");
-    if (startDetectionButton) {
-      startDetectionButton.addEventListener("click", handleStartDetection);
-    }
-  } else if (currentMode.value === "manual") {
-    actionButtonContainer.innerHTML = `
+  actionButtonContainer.innerHTML = `
       <button id="save-upload" class="btn">儲存並上傳</button>
     `;
-    const saveUploadButton = document.getElementById("save-upload");
-    if (saveUploadButton) {
-      saveUploadButton.addEventListener("click", handleSaveUpload);
-    }
+  const saveUploadButton = document.getElementById("save-upload");
+  if (saveUploadButton) {
+    saveUploadButton.addEventListener("click", handleSaveUpload);
   }
 }
 
+function insertStartDectionButton() {
+  const actionButtonContainer = document.getElementById(
+    "action-button-container"
+  );
+  actionButtonContainer.innerHTML = `<button id="start-detection" class="btn">開始偵測</button>`;
+  const startDetectionButton = document.getElementById("start-detection");
+  if (startDetectionButton) {
+    startDetectionButton.addEventListener("click", handleStartDetection);
+  }
+}
+
+let currentBroadcastIndex = 0;
+let broadcastStudents = [];
+
 function handleStartDetection() {
-  const measurementType = window.env.MEASUREMENT_TYPE;
-
-  if (measurementType === "height-weight") {
-    alert("開始偵測身高體重");
-  } else if (measurementType === "vision") {
-    alert("開始偵測視力");
+  if (selectedStudentsForDetection.length === 0) {
+    alert("請先點名要進行偵測的學生。");
+    return;
   }
-  const broadCast = `<div id="broadcast">
-    <button>◀️</button><p id="name"></p><button>▶️</button>
-    </div>`;
 
+  // 使用已點名的學生資料建立廣播列表
+  broadcastStudents = students.filter(student => selectedStudentsForDetection.includes(student.pid));
+  currentBroadcastIndex = 0;
+
+  // const broadCastContainer = document.getElementById('broadcast-container');
   if (pageState.container) {
-    pageState.container.insertAdjacentHTML('beforebegin', broadCast);
-    // renderMeasureTable(pageState.container, students, false);
+    const broadCast = `
+      <div id="broadcast">
+        <button id="prev-student">◀️</button><p id="name"></p><button id="next-student">▶️</button>
+      </div>
+    `;
+    pageState.container.insertAdjacentHTML('afterbegin', broadCast);
+
+    updateBroadcastName();
+    setupBroadcastNavigation();
   }
 
-  // 在偵測完成後（或在您希望按鈕切換的時機），更改 currentMode 並更新按鈕
+  insertSaveUploadButton(); // 假設點擊開始偵測後，最終會有儲存按鈕
+}
+
+function updateBroadcastName() {
+  const nameElement = document.getElementById('name');
+  if (nameElement && broadcastStudents.length > 0) {
+    nameElement.textContent = broadcastStudents[currentBroadcastIndex].name;
+  }
+}
+
+function setupBroadcastNavigation() {
+  const prevButton = document.getElementById('prev-student');
+  const nextButton = document.getElementById('next-student');
+
+  if (prevButton) {
+    prevButton.addEventListener('click', () => {
+      currentBroadcastIndex = Math.max(0, currentBroadcastIndex - 1);
+      updateBroadcastName();
+      // 觸發後端請求獲取當前學生的量測數值並填入表格 (步驟 5)
+      fetchAndFillMeasurement(broadcastStudents[currentBroadcastIndex].pid);
+    });
+  }
+
+  if (nextButton) {
+    nextButton.addEventListener('click', () => {
+      currentBroadcastIndex = Math.min(broadcastStudents.length - 1, currentBroadcastIndex + 1);
+      updateBroadcastName();
+      // 觸發後端請求獲取當前學生的量測數值並填入表格 (步驟 5)
+      fetchAndFillMeasurement(broadcastStudents[currentBroadcastIndex].pid);
+    });
+  }
+}
+
+function fetchAndFillMeasurement() {
+  // 假設後端 API 會按照廣播順序提供數據，不需要 studentPid
+  const measurementUrl = `${window.env.API_BASE_URL}/get-auto-data`; // 修改 API URL
+
+  fetch(measurementUrl)
+    .then(response => {
+      if (!response.ok) {
+        console.error('獲取量測數據失敗');
+        return null;
+      }
+      return response.json();
+    })
+    .then(measurementData => {
+      if (measurementData && broadcastStudents.length > 0) {
+        // 使用 currentBroadcastIndex 獲取當前廣播的學生物件
+        const currentStudent = broadcastStudents[currentBroadcastIndex];
+        const studentPid = currentStudent.pid;
+
+        // 找到表格中對應學生的列並填入數值
+        const row = document.querySelector(`table.measure-table tr[data-student-pid="${studentPid}"]`);
+        if (row) {
+          const heightInput = row.querySelector('.height-input');
+          const weightInput = row.querySelector('.weight-input');
+          const leftNakedInput = row.querySelector('.sight-input.left-naked');
+          const rightNakedInput = row.querySelector('.sight-input.right-naked');
+          const leftInput = row.querySelector('.sight-input.left');
+          const rightInput = row.querySelector('.sight-input.right');
+          const dateInput = row.querySelector('.date-input');
+
+          if (measurementData.height !== undefined) heightInput.value = measurementData.height;
+          if (measurementData.weight !== undefined) weightInput.value = measurementData.weight;
+          if (measurementData.Sight0L !== undefined) leftNakedInput.value = measurementData.Sight0L;
+          if (measurementData.Sight0R !== undefined) rightNakedInput.value = measurementData.Sight0R;
+          if (measurementData.SightL !== undefined) leftInput.value = measurementData.SightL;
+          if (measurementData.SightR !== undefined) rightInput.value = measurementData.SightR;
+          if (measurementData.date !== undefined) dateInput.value = formatDateTime(measurementData.date);
+        }
+      }
+    });
+}
+// 自動輸入操作
+function measureAuto() {
+  currentMode.value = "auto";
+  pageState.container.innerHTML = "";
+  renderAutoTable(pageState.container, students);
+  insertStartDectionButton();
+}
+// 手動輸入操作
+function measureManual() {
   currentMode.value = "manual";
-  updateActionButton();
+  pageState.container.innerHTML = "";
+  renderManualTable(pageState.container, students);
+  insertSaveUploadButton();
 }
 
 // 儲存並上傳處理函數

@@ -17,7 +17,7 @@ async function initHeader() {
     const schoolNameElement = document.getElementById("school-name");
     if (schoolNameElement) {
       schoolNameElement.textContent = window.env?.SCHOOL_NAME || "未知學校";
-      console.log("✅ header 載入成功，學校名稱設定為：", schoolNameElement.textContent);
+      // console.log("✅ header 載入成功，學校名稱設定為：", schoolNameElement.textContent);
     } else {
       console.error("❌ 無法找到 #school-name 元素");
     }
@@ -38,7 +38,7 @@ async function initHeader() {
       }
 
       typeElement.textContent = typeText;
-      console.log("✅ TYPE 載入成功，顯示文字為：", typeText);
+      // console.log("✅ TYPE 載入成功，顯示文字為：", typeText);
     } else {
       console.error("❌ 無法找到 #type-description 元素");
     }

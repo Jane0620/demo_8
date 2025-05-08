@@ -6,6 +6,7 @@ import apiRoutes from "./routes/api.js";
 import { getValidToken } from "./services/loginShis.js";
 import fs from "fs";
 import envRoutes from "./routes/env.js";
+
 import { injectEnvVariables } from "./utils/injectEnvVariables.js"; // 引入注入環境變數的函數
 
 import dotenv from "dotenv";

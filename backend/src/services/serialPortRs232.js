@@ -1,13 +1,11 @@
 
 // mock
-import { SerialPort } from 'serialport';
+import { SerialPort, SerialPortMock } from 'serialport';
 import { ReadlineParser } from '@serialport/parser-readline';
-import { MockBinding } from '@serialport/binding-mock';
+// import { MockBinding } from '@serialport/binding-mock';
 import dotenv from "dotenv";
 dotenv.config();
 
-// 設定 Mock 綁定為 SerialPort 的綁定
-SerialPort.Binding = MockBinding;
 
 // 從環境變數取得設定
 const path = process.env.SERIAL_PATH;
@@ -16,7 +14,7 @@ const dataBits = parseInt(process.env.DATABITS);
 const stopBits = parseInt(process.env.STOPBITS);
 
 // 建立模擬串口
-MockBinding.createPort(path);
+SerialPortMock.binding.createPort(path);
 
 // 處理資料的函數 - 處理來自設備的資料
 export function processData(data) {
@@ -70,7 +68,7 @@ function getGenderText(code) {
 
 export function getAutoWhData(callback) {
   // 建立串口連線
-  const port = new SerialPort({
+  const port = new SerialPortMock({
     path: path,
     baudRate: baudRate,
     dataBits: dataBits,
@@ -94,6 +92,7 @@ export function getAutoWhData(callback) {
     const processedData = processData(data);
     if (callback && typeof callback === 'function') {
       callback(processedData);
+      
     }
   });
 

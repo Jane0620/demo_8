@@ -9,8 +9,8 @@ import {
 } from "/js/util.js";
 import {
   renderManualTable,
-  renderAutoTable, 
-  selectedStudentsForDetection
+  renderAutoTable,
+  selectedStudentsForDetection,
 } from "./measureTable.js";
 
 let students = [];
@@ -106,95 +106,155 @@ function handleStartDetection() {
   }
 
   // 使用已點名的學生資料建立廣播列表
-  broadcastStudents = students.filter(student => selectedStudentsForDetection.includes(student.pid));
+  broadcastStudents = students.filter((student) =>
+    selectedStudentsForDetection.includes(student.pid)
+  );
   currentBroadcastIndex = 0;
-
-  // const broadCastContainer = document.getElementById('broadcast-container');
+  // 插廣播框
   if (pageState.container) {
     const broadCast = `
       <div id="broadcast">
         <button id="prev-student">◀️</button><p id="name"></p><button id="next-student">▶️</button>
       </div>
     `;
-    pageState.container.insertAdjacentHTML('afterbegin', broadCast);
+    pageState.container.insertAdjacentHTML("afterbegin", broadCast);
 
     updateBroadcastName();
     setupBroadcastNavigation();
   }
-
+  initializeWebSocket();// 建立連線
   insertSaveUploadButton(); // 假設點擊開始偵測後，最終會有儲存按鈕
 }
-
+// 插名字
 function updateBroadcastName() {
-  const nameElement = document.getElementById('name');
+  const nameElement = document.getElementById("name");
   if (nameElement && broadcastStudents.length > 0) {
     nameElement.textContent = broadcastStudents[currentBroadcastIndex].name;
   }
 }
 
+// 廣播按鈕
 function setupBroadcastNavigation() {
-  const prevButton = document.getElementById('prev-student');
-  const nextButton = document.getElementById('next-student');
+  const prevButton = document.getElementById("prev-student");
+  const nextButton = document.getElementById("next-student");
 
   if (prevButton) {
-    prevButton.addEventListener('click', () => {
+    prevButton.addEventListener("click", () => {
       currentBroadcastIndex = Math.max(0, currentBroadcastIndex - 1);
       updateBroadcastName();
-      // 觸發後端請求獲取當前學生的量測數值並填入表格 (步驟 5)
-      fetchAndFillMeasurement(broadcastStudents[currentBroadcastIndex].pid);
     });
   }
 
   if (nextButton) {
-    nextButton.addEventListener('click', () => {
-      currentBroadcastIndex = Math.min(broadcastStudents.length - 1, currentBroadcastIndex + 1);
+    nextButton.addEventListener("click", () => {
+      currentBroadcastIndex = Math.min(
+        broadcastStudents.length - 1,
+        currentBroadcastIndex + 1
+      );
       updateBroadcastName();
-      // 觸發後端請求獲取當前學生的量測數值並填入表格 (步驟 5)
-      fetchAndFillMeasurement(broadcastStudents[currentBroadcastIndex].pid);
     });
   }
 }
 
-function fetchAndFillMeasurement() {
-  // 假設後端 API 會按照廣播順序提供數據，不需要 studentPid
-  const measurementUrl = `${window.env.API_BASE_URL}/get-auto-data`; // 修改 API URL
+// 建立連線
+function initializeWebSocket() {
+  /* 
+     假設你的後端 WebSocket 伺服器運行在相同的域名和端口，路徑為 '/ws' (如果沒有指定路徑，預設就是 '/' )
+     如果你的後端伺服器和端口與前端不同，請替換為正確的 URL
+     例如： const ws = new WebSocket('ws://localhost:3000');
+     注意：window.env.API_BASE_URL 通常用於 REST API，WebSocket 通常使用 ws:// 或 wss:// 協定
+     伺服器是 http://localhost:3000，則 WebSocket 連線是 ws://localhost:3000 
+  */
+  const ws = new WebSocket(
+    `${window.location.protocol === "https:" ? "wss" : "ws"}://${
+      window.location.host
+    }`
+  ); // 假設WebSocket和HTTP服務器共享相同的host和port
 
-  fetch(measurementUrl)
-    .then(response => {
-      if (!response.ok) {
-        console.error('獲取量測數據失敗');
-        return null;
-      }
-      return response.json();
-    })
-    .then(measurementData => {
-      if (measurementData && broadcastStudents.length > 0) {
-        // 使用 currentBroadcastIndex 獲取當前廣播的學生物件
+  ws.onopen = () => {
+    console.log("Connected to WebSocket server");
+  };
+
+  ws.onmessage = (event) => {
+    try {
+      const receivedData = JSON.parse(event.data);
+      console.log("Received measurement data via WebSocket:", receivedData);
+
+      /* 
+            2. 處理接收到的資料並更新 UI 
+            收到的資料是給當前正在廣播的學生
+          */
+      if (broadcastStudents.length > 0) {
         const currentStudent = broadcastStudents[currentBroadcastIndex];
         const studentPid = currentStudent.pid;
 
-        // 找到表格中對應學生的列並填入數值
-        const row = document.querySelector(`table.measure-table tr[data-student-pid="${studentPid}"]`);
-        if (row) {
-          const heightInput = row.querySelector('.height-input');
-          const weightInput = row.querySelector('.weight-input');
-          const leftNakedInput = row.querySelector('.sight-input.left-naked');
-          const rightNakedInput = row.querySelector('.sight-input.right-naked');
-          const leftInput = row.querySelector('.sight-input.left');
-          const rightInput = row.querySelector('.sight-input.right');
-          const dateInput = row.querySelector('.date-input');
-
-          if (measurementData.height !== undefined) heightInput.value = measurementData.height;
-          if (measurementData.weight !== undefined) weightInput.value = measurementData.weight;
-          if (measurementData.Sight0L !== undefined) leftNakedInput.value = measurementData.Sight0L;
-          if (measurementData.Sight0R !== undefined) rightNakedInput.value = measurementData.Sight0R;
-          if (measurementData.SightL !== undefined) leftInput.value = measurementData.SightL;
-          if (measurementData.SightR !== undefined) rightInput.value = measurementData.SightR;
-          if (measurementData.date !== undefined) dateInput.value = formatDateTime(measurementData.date);
-        }
+        updateMeasurementTable(studentPid, receivedData);
+      } else {
+        console.warn(
+          "No broadcast students loaded. Cannot update table with received data."
+        );
       }
-    });
+    } catch (error) {
+      console.error("Error parsing WebSocket message:", error);
+    }
+  };
+
+  ws.onclose = () => {
+    console.log(
+      "Disconnected from WebSocket server. Attempting to reconnect in 3 seconds..."
+    );
+    setTimeout(initializeWebSocket, 3000); // 斷線後嘗試重新連接
+  };
+
+  ws.onerror = (error) => {
+    console.error("WebSocket error:", error);
+  };
 }
+
+// ---- 4. 將更新表格的邏輯獨立出來 ----
+// 這個函數現在會被 WebSocket 的 onmessage 呼叫
+function updateMeasurementTable(studentPid, measurementData) {
+  // 找到表格中對應學生的列並填入數值
+  const row = document.querySelector(
+    `table.measure-table tr[data-student-pid="${studentPid}"]`
+  );
+  if (row) {
+    const heightInput = row.querySelector(".height-input");
+    const weightInput = row.querySelector(".weight-input");
+    // const bmiInput = row.querySelector('.bmi-input'); // Bmi
+
+    // 注意：你的串口資料只包含 height, weight, bmi, gender
+    // 如果 Sight0L, Sight0R, SightL, SightR, date 需要更新，
+    // 這些資料需要從後端透過其他方式提供 (例如從資料庫查詢，或在 WebSocket 傳送的資料中包含)
+
+    // 這部分的程式碼是你的原始 `WorkspaceAndFillMeasurement` 函數中的更新 UI 部分
+    if (heightInput && measurementData.height !== undefined) {
+      heightInput.value = measurementData.height;
+    }
+    if (weightInput && measurementData.weight !== undefined) {
+      weightInput.value = measurementData.weight;
+    }
+    // if (bmiInput && measurementData.bmi !== undefined) {
+    //     bmiInput.value = measurementData.bmi; // 更新 BMI
+    // }
+
+    // 這些欄位 (Sight0L, Sight0R, SightL, SightR, date) 由於串口資料中沒有，
+    // 如果需要更新，你需要確保 measurementData 中包含這些字段
+    // 或是當學生切換時，發送一個 HTTP 請求來加載這些歷史數據
+
+    const dateInput = row.querySelector(".date-input");
+    function formatDateTime(isoString) {
+      const date = new Date(isoString);
+      return date.toLocaleString(); // 或根據你的需要格式化
+    }
+
+    if (dateInput && measurementData.date !== undefined)
+      dateInput.value = formatDateTime(measurementData.date);
+  } else {
+    console.warn(`Table row for student PID "${studentPid}" not found.`);
+  }
+}
+
 // 自動輸入操作
 function measureAuto() {
   currentMode.value = "auto";

@@ -6,8 +6,10 @@ import apiRoutes from "./routes/api.js";
 import { getValidToken } from "./services/loginShis.js";
 import fs from "fs";
 import envRoutes from "./routes/env.js";
-
+import http from "http";
 import { injectEnvVariables } from "./utils/injectEnvVariables.js"; // 引入注入環境變數的函數
+import setupWebSocket from "./routes/ws.js"; // 引入 WebSocket 設定函數
+import { getAutoWhData } from "./services/serialPortRs232.js"; // 引入串口數據獲取函數
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -88,8 +90,20 @@ app.use("/components", express.static(path.join(frontendPath, "components")));
 app.use("/api", apiRoutes);
 app.use("/api/env", envRoutes);
 
+// 創建 HTTP 伺服器
+// 把 Express 的功能整合到這個 server 裡了
+const server = http.createServer(app);
+
 const PORT = process.env.PORT;
-app.listen(PORT, "0.0.0.0", () => {
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running at http://localhost:${PORT}`);
   console.log(`Network access: http://172.20.10.5:${PORT}`);
+
+  // 初始化 WebSocket 伺服器並獲取 broadcast 函數
+  const { broadcast } = setupWebSocket(server);
+  // 伺服器啟動後，開始監聽串口資料
+  getAutoWhData((processedData) => {
+    // 當串口有新資料時，透過 WebSocket 廣播給所有連接的前端客戶端
+    broadcast(processedData);
+  });
 });

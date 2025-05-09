@@ -11,6 +11,7 @@ import { injectEnvVariables } from "./utils/injectEnvVariables.js"; // 引入注
 import setupWebSocket from "./routes/ws.js"; // 引入 WebSocket 設定函數
 import { getAutoWhData } from "./services/serialPortRs232.js"; // 引入串口數據獲取函數
 
+
 import dotenv from "dotenv";
 dotenv.config();
 

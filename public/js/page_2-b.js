@@ -113,7 +113,7 @@ function handleStartDetection() {
   // 插廣播框
   if (pageState.container) {
     const broadCast = `
-      <div id="broadcast">
+      <div id="broadcast" class="broadcast">
         <button id="prev-student">◀️</button><p id="name"></p><button id="next-student">▶️</button>
       </div>
     `;
@@ -122,8 +122,37 @@ function handleStartDetection() {
     updateBroadcastName();
     setupBroadcastNavigation();
   }
-  initializeWebSocket();// 建立連線
+  initializeWebSocket(); // 建立連線
   insertSaveUploadButton(); // 假設點擊開始偵測後，最終會有儲存按鈕
+}
+
+// 自動廣播
+function autoBroadcast(){
+  let foundUnmeasuredStudent = false;
+  for (let i = 0; i < broadcastStudents.length; i++) {
+      const student = broadcastStudents[i];
+      const row = document.querySelector(`table.measure-table tr[data-student-pid="${student.pid}"]`);
+      
+      if (row) {
+          const heightInput = row.querySelector(".height-input");
+          const weightInput = row.querySelector(".weight-input");
+
+          // 檢查身高或體重欄位是否為空字串，表示尚未輸入
+          // 如果欄位的值是 '0'，但這來自於感測器，那它就已經被輸入了。
+          // 這裡只判斷是否為空字串，因為表格初始化時這些欄位是空的。
+          if ((heightInput && heightInput.value === '') || (weightInput && weightInput.value === '')) {
+              currentBroadcastIndex = i;
+              updateBroadcastName();
+              foundUnmeasuredStudent = true;
+              break; // 找到第一位尚未測量的學生，停止循環
+          }
+      }
+  }
+
+  if (!foundUnmeasuredStudent) {
+      console.log("所有已點名的學生都已完成測量。");
+      // 您可以在這裡添加邏輯，例如隱藏廣播控制或顯示完成訊息
+  }
 }
 // 插名字
 function updateBroadcastName() {
@@ -187,8 +216,8 @@ function initializeWebSocket() {
       if (broadcastStudents.length > 0) {
         const currentStudent = broadcastStudents[currentBroadcastIndex];
         const studentPid = currentStudent.pid;
-
         updateMeasurementTable(studentPid, receivedData);
+        autoBroadcast();
       } else {
         console.warn(
           "No broadcast students loaded. Cannot update table with received data."

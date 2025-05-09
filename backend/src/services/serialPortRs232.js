@@ -92,7 +92,7 @@ export function getAutoWhData(callback) {
     const processedData = processData(data);
     if (callback && typeof callback === 'function') {
       callback(processedData);
-      
+
     }
   });
 
@@ -142,7 +142,8 @@ function startDataSimulation(port) {
 
     // 使用 MockBinding 的正確方式發送資料
     try {
-      port.write(`${data}\r\n`);
+      // port.write(`${data}\r\n`);
+      port.port.emitData(Buffer.from(`${data}\r\n`));
     } catch (err) {
       console.error("發送模擬資料時發生錯誤:", err.message);
     }
@@ -152,7 +153,7 @@ function startDataSimulation(port) {
       clearInterval(simulationInterval);
       console.log("模擬資料發送完畢");
     }
-  }, 3000);
+  }, 10000);
 
   return simulationInterval;
 }

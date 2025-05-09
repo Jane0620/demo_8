@@ -200,7 +200,7 @@ export function renderAutoTable(container, students, options = {}) {
 
   const getRowHTML = (student) => {
     const commonRowStart = `
-        <tr data-student-pid="${student.seat}">
+        <tr data-student-pid="${student.pid}">
           <td><input type="checkbox" data-student-id="${
             student.pid
           }" class="attendance-checkbox" ${

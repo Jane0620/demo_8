@@ -1,5 +1,5 @@
 // routes/ws.js
-import { WebSocketServer } from 'ws';
+import { WebSocket, WebSocketServer } from 'ws';
 
 // 這行程式碼會在 routes/ws.js 模組被載入時就執行
 console.log('ws.js: Module loaded.');
@@ -44,9 +44,11 @@ const setupWebSocket = (server) => {
 
     const broadcast = (data) => {
         const jsonData = JSON.stringify(data);
+        console.log('client.readyState:', clients.readyState); // 加這行幫你 debug
         clients.forEach(client => {
-            if (client.readyState === WebSocketServer.OPEN) {
+            if (client.readyState === WebSocket.OPEN) {
                 client.send(jsonData);
+                console.log('Broadcasting to clients:', jsonData);
             }
         });
     };

@@ -114,7 +114,12 @@ function handleStartDetection() {
   if (pageState.container) {
     const broadCast = `
       <div id="broadcast" class="broadcast">
-        <button id="prev-student">◀️</button><p id="name"></p><button id="next-student">▶️</button>
+        <div id="name"></div>
+        <div class="buttons-container">
+        <img src="../assets/prev.svg" id="prev-student">
+        <img src="../assets/stop.svg" id="broadcast-student">
+        <img src="../assets/next.svg" id="next-student">
+        </div>
       </div>
     `;
     pageState.container.insertAdjacentHTML("afterbegin", broadCast);
@@ -127,33 +132,29 @@ function handleStartDetection() {
 }
 
 // 自動廣播
-function autoBroadcast(){
-  let foundUnmeasuredStudent = false;
-  for (let i = 0; i < broadcastStudents.length; i++) {
-      const student = broadcastStudents[i];
-      const row = document.querySelector(`table.measure-table tr[data-student-pid="${student.pid}"]`);
-      
-      if (row) {
-          const heightInput = row.querySelector(".height-input");
-          const weightInput = row.querySelector(".weight-input");
-
-          // 檢查身高或體重欄位是否為空字串，表示尚未輸入
-          // 如果欄位的值是 '0'，但這來自於感測器，那它就已經被輸入了。
-          // 這裡只判斷是否為空字串，因為表格初始化時這些欄位是空的。
-          if ((heightInput && heightInput.value === '') || (weightInput && weightInput.value === '')) {
-              currentBroadcastIndex = i;
-              updateBroadcastName();
-              foundUnmeasuredStudent = true;
-              break; // 找到第一位尚未測量的學生，停止循環
-          }
-      }
-  }
-
-  if (!foundUnmeasuredStudent) {
-      console.log("所有已點名的學生都已完成測量。");
-      // 您可以在這裡添加邏輯，例如隱藏廣播控制或顯示完成訊息
+// 暫停廣播
+function stopAutoBroadcast() {
+  // 暫停廣播的邏輯：不更新廣播框中的姓名
+  console.log("廣播已暫停");
+}
+// 開始廣播
+function startAutoBroadcast() {
+  // 開始廣播的邏輯：跟著點名順序索引更新廣播框中的姓名
+  // 情境：1.後端數值(Websocket)填入表格後，會自動廣播下一位學生
+  //      2.按下播放按鈕，會自動廣播下一位學生
+  // WebSocket 傳來數據後，直接更新當前學生並切換到下一位
+  if (broadcastStudents.length > 0) {
+    currentBroadcastIndex =
+      (currentBroadcastIndex + 1) % broadcastStudents.length;
+    updateBroadcastName(); // 更新廣播框中的姓名
+    console.log(
+      `正在廣播學生：${broadcastStudents[currentBroadcastIndex].name}`
+    );
+  } else {
+    console.warn("廣播學生列表為空，無法進行自動廣播。");
   }
 }
+
 // 插名字
 function updateBroadcastName() {
   const nameElement = document.getElementById("name");
@@ -166,9 +167,11 @@ function updateBroadcastName() {
 function setupBroadcastNavigation() {
   const prevButton = document.getElementById("prev-student");
   const nextButton = document.getElementById("next-student");
+  const broadcastButton = document.getElementById("broadcast-student");
 
   if (prevButton) {
     prevButton.addEventListener("click", () => {
+      stopAutoBroadcast();
       currentBroadcastIndex = Math.max(0, currentBroadcastIndex - 1);
       updateBroadcastName();
     });
@@ -176,11 +179,29 @@ function setupBroadcastNavigation() {
 
   if (nextButton) {
     nextButton.addEventListener("click", () => {
+      stopAutoBroadcast();
       currentBroadcastIndex = Math.min(
         broadcastStudents.length - 1,
         currentBroadcastIndex + 1
       );
       updateBroadcastName();
+    });
+  }
+  // 廣播按鈕
+  if (broadcastButton) {
+    broadcastButton.addEventListener("click", () => {
+      const isPlaying = broadcastButton.getAttribute("data-playing") === "true";
+
+      if (isPlaying) {
+        stopAutoBroadcast(); // 暫停廣播
+        broadcastButton.src = "../assets/play.svg"; // 切換為播放圖示
+        broadcastButton.setAttribute("data-playing", "false");
+      } else {
+        console.log("手動啟動廣播");
+        startAutoBroadcast(); // 開始廣播
+        broadcastButton.src = "../assets/stop.svg"; // 切換為暫停圖示
+        broadcastButton.setAttribute("data-playing", "true");
+      }
     });
   }
 }
@@ -207,7 +228,7 @@ function initializeWebSocket() {
   ws.onmessage = (event) => {
     try {
       const receivedData = JSON.parse(event.data);
-      console.log("Received measurement data via WebSocket:", receivedData);
+      // console.log("Received measurement data via WebSocket:", receivedData);
 
       /* 
             2. 處理接收到的資料並更新 UI 
@@ -217,7 +238,7 @@ function initializeWebSocket() {
         const currentStudent = broadcastStudents[currentBroadcastIndex];
         const studentPid = currentStudent.pid;
         updateMeasurementTable(studentPid, receivedData);
-        autoBroadcast();
+        startAutoBroadcast();
       } else {
         console.warn(
           "No broadcast students loaded. Cannot update table with received data."

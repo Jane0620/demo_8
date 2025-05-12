@@ -153,7 +153,7 @@ function startDataSimulation(port) {
       clearInterval(simulationInterval);
       console.log("模擬資料發送完畢");
     }
-  }, 10000);
+  }, 3000);
 
   return simulationInterval;
 }

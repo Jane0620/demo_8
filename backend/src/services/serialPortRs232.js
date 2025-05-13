@@ -1,11 +1,9 @@
-
 // mock
-import { SerialPort, SerialPortMock } from 'serialport';
-import { ReadlineParser } from '@serialport/parser-readline';
+import { SerialPort, SerialPortMock } from "serialport";
+import { ReadlineParser } from "@serialport/parser-readline";
 // import { MockBinding } from '@serialport/binding-mock';
 import dotenv from "dotenv";
 dotenv.config();
-
 
 // 從環境變數取得設定
 const path = process.env.SERIAL_PATH;
@@ -42,7 +40,7 @@ export function processData(data) {
           genderCode: gender,
           weight: weight,
           height: height,
-          bmi: bmi
+          bmi: bmi,
         };
 
         console.log("解析後資料:", processedData);
@@ -73,11 +71,11 @@ export function getAutoWhData(callback) {
     baudRate: baudRate,
     dataBits: dataBits,
     stopBits: stopBits,
-    parity: "none"
+    parity: "none",
   });
 
   // 創建解析器
-  const parser = port.pipe(new ReadlineParser({ delimiter: '\r\n' }));
+  const parser = port.pipe(new ReadlineParser({ delimiter: "\r\n" }));
 
   // 連線開啟時的事件處理
   port.on("open", () => {
@@ -90,16 +88,15 @@ export function getAutoWhData(callback) {
   parser.on("data", (data) => {
     console.log("收到模擬資料:", data);
     const processedData = processData(data);
-    if (callback && typeof callback === 'function') {
+    if (callback && typeof callback === "function") {
       callback(processedData);
-
     }
   });
 
   // 錯誤處理
   port.on("error", (err) => {
     console.error("串口錯誤:", err.message);
-    if (callback && typeof callback === 'function') {
+    if (callback && typeof callback === "function") {
       callback({ error: err.message });
     }
   });
@@ -113,7 +110,7 @@ export function getAutoWhData(callback) {
           console.log("串口已關閉");
         }
       });
-    }
+    },
   };
 }
 
@@ -130,6 +127,12 @@ function startDataSimulation(port) {
   ];
 
   let index = 0;
+
+  function getRandomDelay(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  // 使用 getRandomDelay(5000, 8000) 替代 Radom(5000, 8000)
   const simulationInterval = setInterval(() => {
     if (!port.isOpen) {
       clearInterval(simulationInterval);
@@ -140,9 +143,7 @@ function startDataSimulation(port) {
     const data = sampleData[index % sampleData.length];
     console.log(`模擬設備發送資料: ${data}`);
 
-    // 使用 MockBinding 的正確方式發送資料
     try {
-      // port.write(`${data}\r\n`);
       port.port.emitData(Buffer.from(`${data}\r\n`));
     } catch (err) {
       console.error("發送模擬資料時發生錯誤:", err.message);
@@ -153,7 +154,5 @@ function startDataSimulation(port) {
       clearInterval(simulationInterval);
       console.log("模擬資料發送完畢");
     }
-  }, 3000);
-
-  return simulationInterval;
+  }, getRandomDelay(5000, 8000));
 }

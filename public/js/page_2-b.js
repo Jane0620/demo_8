@@ -159,7 +159,21 @@ function startAutoBroadcast() {
 function updateBroadcastName() {
   const nameElement = document.getElementById("name");
   if (nameElement && broadcastStudents.length > 0) {
+    // 更新廣播框中的姓名
     nameElement.textContent = broadcastStudents[currentBroadcastIndex].name;
+
+    // 移除所有表格列的高亮樣式
+    const highlightedRows = document.querySelectorAll("table.measure-table tr.highlight");
+    highlightedRows.forEach((row) => row.classList.remove("highlight"));
+
+    // 為當前廣播的學生所在的表格列添加高亮樣式
+    const currentStudent = broadcastStudents[currentBroadcastIndex];
+    const currentRow = document.querySelector(
+      `table.measure-table tr[data-student-pid="${currentStudent.pid}"]`
+    );
+    if (currentRow) {
+      currentRow.classList.add("highlight");
+    }
   }
 }
 

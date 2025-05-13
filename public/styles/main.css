@@ -227,17 +227,17 @@ tr.disabled {
 
 #broadcast {
   position: fixed; 
-  top: 50%;
-  left: 50%;
+  top: 30%;
+  left: 55%;
   transform: translate(-50%, -50%); 
   z-index: 1000; /* 確保在所有元素上方 */
   display: flex;
   flex-direction: column; /* 垂直排列 */
   justify-content: center;
   align-items: center;
-  width: 80%;
+  width: 900px;
   padding: 20px;
-  background-color: rgba(255, 255, 255, 0.9); 
+  background-color: rgba(247, 249, 253, 0.9); 
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
   border-radius: 8px; /* 圓角 */
 }
@@ -268,4 +268,10 @@ tr.disabled {
 
 #broadcast img:hover {
   transform: scale(1.1); /* 滑過時放大 */
+}
+table.measure-table tr.highlight {
+  background-color: #2980b9; 
+  color: white; 
+  font-weight: bold; 
+  transition: background-color 0.3s ease; /* 添加過渡效果 */
 }

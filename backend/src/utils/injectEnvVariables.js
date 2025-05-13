@@ -7,6 +7,10 @@ export function injectEnvVariables(html) {
   const apiBaseUrl = process.env.API_BASE_URL;
   const schoolId = process.env.SCHOOL_ID;
   const schoolName = process.env.SCHOOL_NAME;
+  const serialPath = process.env.SERIAL_PATH;
+  const baudRate = process.env.BAUDRATE;  
+  const dataBits = process.env.DATABITS;
+  const stopBits = process.env.STOPBITS;
 
   // 正則表達式替換環境變數
   return html.replace(
@@ -18,7 +22,11 @@ export function injectEnvVariables(html) {
           API_BASE_URL: "${apiBaseUrl}",
           SCHOOL_NAME: "${schoolName}",
           MEASUREMENT_TYPE: "${measurementType}",
-          SCHOOL_ID: "${schoolId}"
+          SCHOOL_ID: "${schoolId}",
+          SERIAL_PATH: "${serialPath}",
+          BAUDRATE: "${baudRate}",
+          DATABITS: "${dataBits}",
+          STOPBITS: "${stopBits}"
         };
         // console.log("Server injected window.env:", window.env);
       </script>`

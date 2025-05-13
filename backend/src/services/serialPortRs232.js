@@ -13,6 +13,7 @@ const stopBits = parseInt(process.env.STOPBITS);
 
 // 建立模擬串口
 SerialPortMock.binding.createPort(path);
+console.log("模擬串口已建立:", SerialPortMock.binding.createPort(path));
 
 // 處理資料的函數 - 處理來自設備的資料
 export function processData(data) {

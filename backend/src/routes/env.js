@@ -3,7 +3,7 @@ import express from "express";
 import fs from "fs";
 import path from "path";
 // import { fileURLToPath } from "url";
-import { exec } from "child_process";
+// import { exec } from "child_process";
 
 const router = express.Router();
 const envPath = path.join(process.cwd(), ".env");
@@ -38,7 +38,7 @@ router.get("/", (req, res) => {
 
 // ✅ POST 修改設定
 router.post("/", (req, res) => {
-  const updates = req.body;
+  const updates = req.body; // 這裡的 updates 只會包含前端發送過來的鍵值對
   const allowedKeys = [
     "TYPE",
     "SCHOOL_ID",
@@ -46,6 +46,14 @@ router.post("/", (req, res) => {
     "API_KEY",
     "DOWNLOAD_URL",
     "UPLOAD_URL",
+    "SERIAL_PATH",
+    "BAUDRATE",
+    "DATABITS",
+    "STOPBITS",
+    // 確保這裡包含 upload-time 分頁可能新增的 key
+    "UPLOAD_TIME_PERIOD", // 如果你使用了這個 key
+    "UPLOAD_TIME_VALUE",  // 如果你使用了這個 key
+    "DATA_FORMAT",        // 如果你使用了這個 key
   ];
 
   try {
@@ -53,20 +61,22 @@ router.post("/", (req, res) => {
     const envObj = parseEnvFile(original);
 
     for (const key of allowedKeys) {
-      if (key in updates) {
+      if (key in updates) { // 只有當這個 key 在 updates 物件中存在時，才會進行更新
         if (key === "UPLOAD_URL" && Array.isArray(updates[key])) {
           envObj[key] = updates[key].join(",");
         } else {
           envObj[key] = updates[key];
         }
       }
+      // 如果 key 不在 updates 中，那麼 envObj[key] 的值會維持原始的 .env 檔案中的值，不會被改變。
     }
 
     const newContent = stringifyEnv(envObj);
     fs.writeFileSync(envPath, newContent, "utf-8");
 
     res.json({ success: true, message: ".env 已更新，伺服器將重新啟動" });
-    
+    // 這裡你可以考慮是否真的需要重新啟動伺服器，或僅是重新載入設定。
+    // `exec` 重新啟動伺服器的邏輯被註釋掉了，如果需要則取消註釋並處理權限。
 
   } catch (err) {
     console.error("❌ 更新失敗：", err);

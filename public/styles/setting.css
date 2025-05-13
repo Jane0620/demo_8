@@ -1,66 +1,75 @@
 /* 設定選單容器 */
 .settings-menu {
-    padding: 10px;
-    margin-bottom: 20px; 
-    border-bottom: 1px solid #ddd; 
+  padding: 10px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #ddd;
 }
 
 /* 單個選項 Label 的樣式 */
 .settings-menu label {
-    display: block; /* 使每個 label 佔據一行 */
-    align-items: center;
-    line-height: 48px; 
-    margin-bottom: 15px;
-    color: #464646;
-    font-size: 16px;
+  display: block; /* 使每個 label 佔據一行 */
+  align-items: center;
+  line-height: 48px;
+  margin-bottom: 15px;
+  color: #464646;
+  font-size: 16px;
 }
 
 /* API 輸入框的樣式 */
 .settings-menu input {
-    width: 70%; 
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
-    font-size: 16px; 
+  width: 70%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 16px;
 }
 
 .settings-menu input:focus {
-    outline: none;
-    border: 2px solid #3498db; 
+  outline: none;
+  border: 2px solid #3498db;
 }
 
 .settings-menu button {
-    /* float: right; */
-    background-color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-right: 2px;
-    font-size: 16px;
+  /* float: right; */
+  background-color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 2px;
+  font-size: 16px;
 }
 .settings-menu button:hover {
-    background-color: #86cfff;
-    color: white;
-    transition: background-color 0.3s ease;
+  background-color: #86cfff;
+  color: white;
+  transition: background-color 0.3s ease;
 }
-.measurement{
-    display: block; /* 使每個 label 佔據一行 */
-    align-items: center;
-    line-height: 48px; 
-    padding: 10px;
-    
+
+.settings-menu select {
+  width: 20%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 16px;
+  margin-left: 10px;
+}
+.measurement {
+  display: block; /* 使每個 label 佔據一行 */
+  align-items: center;
+  line-height: 48px;
+  padding: 10px;
 }
 .measurement span {
-    display: inline-block; 
-    align-items: center;
-    line-height: 48px; 
-    margin-right: 120px;
-    color: #464646;
-    font-size: 16px;
+  display: inline-block;
+  align-items: center;
+  line-height: 48px;
+  margin-right: 120px;
+  color: #464646;
+  font-size: 16px;
 }
 .measurement input[type="radio"] {
-    margin-right: 10px; 
-    cursor: pointer; 
+  margin-right: 10px;
+  cursor: pointer;
 }

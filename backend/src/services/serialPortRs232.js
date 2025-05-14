@@ -1,7 +1,8 @@
 import { SerialPort, SerialPortMock } from "serialport";
 import { ReadlineParser } from "@serialport/parser-readline";
 import dotenv from "dotenv";
-import { startDataSimulation } from "./mockDataSender.js";
+// import { startDataSimulation } from "./mockDataSender.js";
+import { bindPort } from "./mockDataSender.js";
 
 dotenv.config();
 
@@ -68,8 +69,7 @@ export function getAutoWhData(callback) {
 
   port.on("open", () => {
     console.log(`模擬串口已開啟 (${path})`);
-    console.log("等待模擬資料...");
-    startDataSimulation(port);
+    bindPort(port); // 綁定給 mockDataSender
   });
 
   parser.on("data", (data) => {

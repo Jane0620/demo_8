@@ -10,6 +10,7 @@ import http from "http";
 import { injectEnvVariables } from "./utils/injectEnvVariables.js"; // 引入注入環境變數的函數
 import setupWebSocket from "./routes/ws.js"; // 引入 WebSocket 設定函數
 import { getAutoWhData } from "./services/serialPortRs232.js"; // 引入串口數據獲取函數
+import mockControlRoutes from "./routes/mockControl.js";
 
 
 import dotenv from "dotenv";
@@ -90,6 +91,7 @@ app.use("/components", express.static(path.join(frontendPath, "components")));
 
 app.use("/api", apiRoutes);
 app.use("/api/env", envRoutes);
+app.use("/mock", mockControlRoutes);
 
 // 創建 HTTP 伺服器
 // 把 Express 的功能整合到這個 server 裡了

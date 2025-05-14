@@ -100,23 +100,24 @@ async function initPage() {
       apiContainer.addEventListener("click", handleButtonClick);
     } else if (activeTab === "attendance") {
       tabContentContainer.innerHTML = `
-        <div id="connection" class="settings-menu">
+        <div id="connection" class="connect-menu">
         <label>
-        資料格式
+        <span>資料格式</span>
         <input type="text" name="dataFormat" placeholder="請輸入資料格式" value=${window.env.DATA_FORMAT || ''} /> 
         </label>
-          <label>連接埠
+          <label>
+          <span>連接埠</span>
             <input type="text" name="serialPath" placeholder="請輸入連接阜請輸入連接埠" value=${window.env.SERIAL_PATH}/> 
           </label>
           <label>
-            Baud Rate
+            <span>Baud Rate</span>
             <select class="round" name="baudrate" id="baudrate">
               <option value="9600">9600</option>
               <option value="115200">115200</option>
               </select>
           </label>
           <label>
-          Data Bits 
+          <span>Data Bits</span> 
             <select class="round" name="dataBits" id="data-bits"> 
               <option value="0">0</option>
               <option value="1">1</option>
@@ -131,7 +132,7 @@ async function initPage() {
             </select>
           </label>
           <label>
-          Stop Bits 
+          <span>Stop Bits</span> 
             <select class="round" name="stopBits" id="stop-bits"> 
               <option value="0">0</option>
               <option value="1">1</option>

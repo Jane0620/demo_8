@@ -2,9 +2,78 @@
 .measure-table th,
 .measure-table td {
   text-align: center; /* 文字置中 */
-  padding: 8px;
+  padding: 12px;
   white-space: nowrap; /* 禁止文字換行 */
   overflow: hidden; /* 隱藏超出內容 */
   text-overflow: ellipsis; /* 超出內容顯示省略號 */
 }
 
+.measure-table th:first-child,
+.measure-table td:first-child {
+  width: 40px !important; /* 點名欄寬度 */
+}
+
+.measure-table th:nth-child(2),
+.measure-table td:nth-child(2) {
+  width: 40px !important; /* 座號欄寬度 */
+}
+
+.measure-table th:nth-child(3),
+.measure-table td:nth-child(3) {
+  width: 80px !important; /* 姓名欄寬度 */
+}
+.measure-table th:nth-child(4),
+.measure-table td:nth-child(4) {
+  width: 40px !important; /* 姓名欄寬度 */
+}
+
+#broadcast {
+  position: fixed; 
+  top: 30%;
+  left: 55%;
+  transform: translate(-50%, -50%); 
+  z-index: 1000; /* 確保在所有元素上方 */
+  display: flex;
+  flex-direction: column; /* 垂直排列 */
+  justify-content: center;
+  align-items: center;
+  width: 900px;
+  padding: 20px;
+  background-color: rgba(247, 249, 253, 0.9); 
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+  border-radius: 8px; /* 圓角 */
+}
+
+#broadcast #name {
+  font-size: 80px;
+  font-weight: bold;
+  margin-bottom: 20px; /* 與按鈕組件分隔 */
+  text-align: center;
+}
+
+#broadcast .buttons-container {
+  display: flexbox;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#broadcast img {
+  border: none;
+  width: 35px;
+  height: 35px;
+  padding: 5px;
+  margin: 0 120px; /* 按鈕之間的水平間距 */
+  cursor: pointer;
+  transition: transform 0.2s; /* 添加縮放動畫 */
+}
+
+#broadcast img:hover {
+  transform: scale(1.1); /* 滑過時放大 */
+}
+table.measure-table tr.highlight {
+  background-color: #2980b9; 
+  color: white; 
+  font-weight: bold; 
+  transition: background-color 0.3s ease; /* 添加過渡效果 */
+}

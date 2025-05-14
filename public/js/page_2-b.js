@@ -242,7 +242,7 @@ function initializeWebSocket() {
   ws.onmessage = (event) => {
     try {
       const receivedData = JSON.parse(event.data);
-      // console.log("Received measurement data via WebSocket:", receivedData);
+      console.log("Received measurement data via WebSocket:", receivedData);
 
       /* 
             2. 處理接收到的資料並更新 UI 

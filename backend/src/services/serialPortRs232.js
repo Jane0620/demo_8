@@ -10,6 +10,7 @@ const path = process.env.SERIAL_PATH;
 const baudRate = parseInt(process.env.BAUDRATE);
 const dataBits = parseInt(process.env.DATABITS);
 const stopBits = parseInt(process.env.STOPBITS);
+const dataFormat = process.env.DATA_FORMAT;
 
 // 建立模擬串口
 SerialPortMock.binding.createPort(path);
@@ -23,31 +24,33 @@ export function processData(data) {
     console.log("接收到JSON格式資料:", parsedData);
     return parsedData;
   } catch (e) {
-    // 若非JSON格式，則顯示原始資料
     console.log("接收到原始資料:", data);
 
-    // 嘗試根據圖片中的資料格式解析
-    // STX,性別,體重,身高,BMI,ET 格式
-    if (data.startsWith("STX")) {
-      const parts = data.split(",");
-      if (parts.length >= 6) {
-        const gender = parts[1].trim();
-        const weight = parseFloat(parts[2]);
-        const height = parseFloat(parts[3]);
-        const bmi = parseFloat(parts[4]);
+    // 使用正規表達式匹配資料格式
+    const regex = new RegExp(dataFormat);
+    const match = data.match(regex);
 
-        const processedData = {
-          gender: getGenderText(gender),
-          genderCode: gender,
-          weight: weight,
-          height: height,
-          bmi: bmi,
-        };
+    if (match) {
+      // 提取正規表達式捕獲組中的資料
+      const gender = match[1]; // 性別
+      const weight = parseFloat(match[2]); // 體重
+      const height = parseFloat(match[3]); // 身高
+      const bmi = parseFloat(match[5]); // BMI
 
-        console.log("解析後資料:", processedData);
-        return processedData;
-      }
+      const processedData = {
+        gender: getGenderText(gender),
+        genderCode: gender,
+        weight: weight,
+        height: height,
+        bmi: bmi,
+      };
+
+      console.log("解析後資料:", processedData);
+      return processedData;
     }
+
+    // 如果正規表達式無法匹配，返回原始資料
+    console.log("無法解析資料格式，返回原始資料");
     return { raw: data };
   }
 }
@@ -60,6 +63,8 @@ function getGenderText(code) {
       return "女性";
     case "C":
       return "兒童";
+    case "T":
+      return "未知";
     default:
       return "未知";
   }
@@ -120,11 +125,11 @@ function startDataSimulation(port) {
   console.log("開始模擬設備發送資料...");
 
   const sampleData = [
-    "STX,M,70.50000,175.60000,22.87,ET",
-    "STX,F,58.32000,162.80000,22.00,ET",
-    "STX,C,32.10000,135.50000,17.46,ET",
-    "STX,M,85.72000,182.30000,25.81,ET",
-    "STX,F,62.45000,168.70000,21.95,ET",
+    "STX,M,70.50,175.6,22.8,ET",
+    "STX,F,58.32,162.8,22.0,ET",
+    "STX,C,32.10,135.5,17.4,ET",
+    "STX,M,85.72,182.3,25.8,ET",
+    "STX,F,62.45,168.7,21.9,ET",
   ];
 
   let index = 0;

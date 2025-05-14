@@ -11,6 +11,7 @@ export function injectEnvVariables(html) {
   const baudRate = process.env.BAUDRATE;  
   const dataBits = process.env.DATABITS;
   const stopBits = process.env.STOPBITS;
+  const dataFormat = process.env.DATA_FORMAT;
 
   // 正則表達式替換環境變數
   return html.replace(
@@ -26,7 +27,8 @@ export function injectEnvVariables(html) {
           SERIAL_PATH: "${serialPath}",
           BAUDRATE: "${baudRate}",
           DATABITS: "${dataBits}",
-          STOPBITS: "${stopBits}"
+          STOPBITS: "${stopBits}",
+          DATA_FORMAT: "${dataFormat}"
         };
         // console.log("Server injected window.env:", window.env);
       </script>`

@@ -98,6 +98,7 @@ function insertStartDectionButton() {
 
 let currentBroadcastIndex = 0;
 let broadcastStudents = [];
+let countdownIntervalId = null;
 
 function handleStartDetection() {
   if (selectedStudentsForDetection.length === 0) {
@@ -114,12 +115,12 @@ function handleStartDetection() {
   if (pageState.container) {
     const broadCast = `
       <div id="broadcast" class="broadcast">
-        <div id="name"></div>
         <div class="buttons-container">
         <img src="../assets/prev.svg" id="prev-student">
-        <img src="../assets/stop.svg" id="broadcast-student">
+        <span id="name"></span>
         <img src="../assets/next.svg" id="next-student">
         </div>
+        <div id="broadcast-end"></div>
       </div>
     `;
     pageState.container.insertAdjacentHTML("afterbegin", broadCast);
@@ -128,28 +129,24 @@ function handleStartDetection() {
     setupBroadcastNavigation();
   }
   initializeWebSocket(); // 建立連線
-  insertSaveUploadButton(); // 假設點擊開始偵測後，最終會有儲存按鈕
+  // 點擊按鈕後清空按鈕
+  document.getElementById("action-button-container").innerHTML = "";
 }
 
 // 自動廣播
-// 暫停廣播
-function stopAutoBroadcast() {
-  // 暫停廣播的邏輯：不更新廣播框中的姓名
-  console.log("廣播已暫停");
-}
-// 開始廣播
 function startAutoBroadcast() {
-  // 開始廣播的邏輯：跟著點名順序索引更新廣播框中的姓名
-  // 情境：1.後端數值(Websocket)填入表格後，會自動廣播下一位學生
-  //      2.按下播放按鈕，會自動廣播下一位學生
-  // WebSocket 傳來數據後，直接更新當前學生並切換到下一位
   if (broadcastStudents.length > 0) {
-    currentBroadcastIndex =
-      (currentBroadcastIndex + 1) % broadcastStudents.length;
-    updateBroadcastName(); // 更新廣播框中的姓名
-    console.log(
-      `正在廣播學生：${broadcastStudents[currentBroadcastIndex].name}`
-    );
+    // 檢查是否還沒到最後一位學生
+    if (currentBroadcastIndex < broadcastStudents.length - 1) {
+      currentBroadcastIndex = currentBroadcastIndex + 1;
+      updateBroadcastName(); // 更新廣播框中的姓名和高亮列
+      console.log(
+        `正在廣播學生：${broadcastStudents[currentBroadcastIndex].name}`
+      );
+    } else {
+      console.log("已到達最後一位學生，停止自動廣播推進。");
+      // 到達最後一位學生時，倒數計時的啟動會在 updateMeasurementTable 中處理
+    }
   } else {
     console.warn("廣播學生列表為空，無法進行自動廣播。");
   }
@@ -158,12 +155,33 @@ function startAutoBroadcast() {
 // 插名字
 function updateBroadcastName() {
   const nameElement = document.getElementById("name");
+  const broadcastEndElement = document.getElementById("broadcast-end"); // 獲取結束標示元素
+
+  // 無論如何，只要切換學生（呼叫此函數），就先停止可能的舊倒數計時
+  if (countdownIntervalId) {
+    clearInterval(countdownIntervalId);
+    countdownIntervalId = null; // 重設 ID
+  }
+
+  // 如果切換到不是最後一位學生，清空「量測完畢」的訊息區域
+  if (broadcastEndElement) {
+    if (
+      broadcastStudents.length === 0 ||
+      currentBroadcastIndex !== broadcastStudents.length - 1
+    ) {
+      broadcastEndElement.textContent = "";
+    }
+    // 當切換到最後一位學生時，這裡不清除，讓 updateMeasurementTable 負責設定內容
+  }
+
   if (nameElement && broadcastStudents.length > 0) {
     // 更新廣播框中的姓名
     nameElement.textContent = broadcastStudents[currentBroadcastIndex].name;
 
     // 移除所有表格列的高亮樣式
-    const highlightedRows = document.querySelectorAll("table.measure-table tr.highlight");
+    const highlightedRows = document.querySelectorAll(
+      "table.measure-table tr.highlight"
+    );
     highlightedRows.forEach((row) => row.classList.remove("highlight"));
 
     // 為當前廣播的學生所在的表格列添加高亮樣式
@@ -174,6 +192,28 @@ function updateBroadcastName() {
     if (currentRow) {
       currentRow.classList.add("highlight");
     }
+    if (currentBroadcastIndex === broadcastStudents.length - 1) {
+      // 檢查此行的身高和體重輸入框是否有值
+      const heightInput = currentRow.querySelector(".height-input");
+      const weightInput = currentRow.querySelector(".weight-input");
+
+      // 判斷是否有數據 (檢查 value 是否為非空字串)
+      if (heightInput?.value !== "" && weightInput?.value !== "") {
+        console.log(
+          `Mapsd to last student (${currentStudent.name}) and data exists. Starting countdown.`
+        );
+        // 呼叫啟動倒數的函數
+        startUploadCountdown(60); // 啟動 60 秒倒數
+      } else {
+        console.log(
+          `Mapsd to last student (${currentStudent.name}), but data is empty. Not starting countdown.`
+        );
+        // 如果切換到最後一位學生但資料是空的，確保結束訊息區域是清空的
+        if (broadcastEndElement) {
+          broadcastEndElement.textContent = "";
+        }
+      }
+    }
   }
 }
 
@@ -181,11 +221,9 @@ function updateBroadcastName() {
 function setupBroadcastNavigation() {
   const prevButton = document.getElementById("prev-student");
   const nextButton = document.getElementById("next-student");
-  const broadcastButton = document.getElementById("broadcast-student");
 
   if (prevButton) {
     prevButton.addEventListener("click", () => {
-      stopAutoBroadcast();
       currentBroadcastIndex = Math.max(0, currentBroadcastIndex - 1);
       updateBroadcastName();
     });
@@ -193,29 +231,11 @@ function setupBroadcastNavigation() {
 
   if (nextButton) {
     nextButton.addEventListener("click", () => {
-      stopAutoBroadcast();
       currentBroadcastIndex = Math.min(
         broadcastStudents.length - 1,
         currentBroadcastIndex + 1
       );
       updateBroadcastName();
-    });
-  }
-  // 廣播按鈕
-  if (broadcastButton) {
-    broadcastButton.addEventListener("click", () => {
-      const isPlaying = broadcastButton.getAttribute("data-playing") === "true";
-
-      if (isPlaying) {
-        stopAutoBroadcast(); // 暫停廣播
-        broadcastButton.src = "../assets/play.svg"; // 切換為播放圖示
-        broadcastButton.setAttribute("data-playing", "false");
-      } else {
-        console.log("手動啟動廣播");
-        startAutoBroadcast(); // 開始廣播
-        broadcastButton.src = "../assets/stop.svg"; // 切換為暫停圖示
-        broadcastButton.setAttribute("data-playing", "true");
-      }
     });
   }
 }
@@ -274,6 +294,91 @@ function initializeWebSocket() {
     console.error("WebSocket error:", error);
   };
 }
+// 專門負責啟動並執行倒數計時
+function startUploadCountdown(durationInSeconds) {
+  const broadcastEndElement = document.getElementById("broadcast-end");
+
+  // 如果結束標示元素不存在，或學生列表為空，則不啟動倒數
+  if (!broadcastEndElement || broadcastStudents.length === 0) {
+    console.warn(
+      "Cannot start countdown: broadcast-end element not found or student list is empty."
+    );
+    // 可以選擇在這裡加一個延遲上傳的備案，或認為這是錯誤情況
+    // setTimeout(() => { handleSaveUpload(); }, durationInSeconds * 1000); // 備案
+    return;
+  }
+
+  // 清除任何可能正在運行的舊倒數計時
+  if (countdownIntervalId) {
+    clearInterval(countdownIntervalId);
+    countdownIntervalId = null;
+  }
+
+  let timeLeft = durationInSeconds; // 從指定時間開始倒數
+
+  // 設定「量測完畢」的訊息，包含顯示倒數時間的 span
+  broadcastEndElement.innerHTML = `<span>量測完畢，資料將於<span id="time">${timeLeft}</span>秒後上傳</span>`;
+
+  // 取得顯示時間的 span 元素
+  const timeElement = document.getElementById("time");
+
+  // 如果時間顯示元素不存在，顯示備案文字並直接延遲上傳
+  if (!timeElement) {
+    console.error("Countdown time element not found inside broadcast-end!");
+    broadcastEndElement.textContent = `量測完畢，資料將於${durationInSeconds}秒後上傳 (倒數顯示異常)`;
+    setTimeout(() => {
+      handleSaveUpload();
+    }, durationInSeconds * 1000);
+    return; // 不再繼續設定 setInterval
+  }
+
+  // 啟動倒數計時器
+  countdownIntervalId = setInterval(() => {
+    timeLeft--;
+    timeElement.textContent = timeLeft; // 更新顯示的時間
+
+    if (timeLeft <= 0) {
+      clearInterval(countdownIntervalId); // 停止計時器
+      countdownIntervalId = null; // 重設 ID
+      broadcastEndElement.textContent = "正在上傳資料..."; // 可選：更新狀態訊息
+
+      // === 觸發儲存及上傳 ===
+      handleSaveUpload();
+      // =====================
+    }
+  }, 1000); // 每 1000 毫秒 (1 秒) 更新一次
+}
+// 用於檢查所有學生資料是否都已填寫
+function areAllStudentsDataFilled() {
+    // 如果沒有廣播學生，則不算是全部填寫完畢
+    if (broadcastStudents.length === 0) {
+        return false;
+    }
+
+    // 遍歷所有廣播學生
+    for (const student of broadcastStudents) {
+        // 根據學生 PID 找到對應的表格行
+        const row = document.querySelector(`table.measure-table tr[data-student-pid="${student.pid}"]`);
+
+        // 如果找不到行，或者行中的身高或體重輸入框不存在，或其值為空字串，都表示資料未填寫完畢
+        if (!row) {
+            console.warn(`Row not found for student PID: ${student.pid} during all data check.`);
+            return false;
+        }
+
+        const heightInput = row.querySelector(".height-input");
+        const weightInput = row.querySelector(".weight-input");
+
+        // 檢查身高和體重輸入框是否存在且有值 (非空字串)
+        if (!heightInput || heightInput.value === '' || !weightInput || weightInput.value === '') {
+            // 只要有一個學生資料不完整，就返回 false
+            return false;
+        }
+    }
+
+    // 如果迴圈跑完都沒有返回 false，表示所有學生資料都完整了
+    return true;
+}
 
 // ---- 4. 將更新表格的邏輯獨立出來 ----
 // 這個函數現在會被 WebSocket 的 onmessage 呼叫
@@ -282,6 +387,7 @@ function updateMeasurementTable(studentPid, measurementData) {
   const row = document.querySelector(
     `table.measure-table tr[data-student-pid="${studentPid}"]`
   );
+
   if (row) {
     const heightInput = row.querySelector(".height-input");
     const weightInput = row.querySelector(".weight-input");
@@ -305,7 +411,6 @@ function updateMeasurementTable(studentPid, measurementData) {
     // 這些欄位 (Sight0L, Sight0R, SightL, SightR, date) 由於串口資料中沒有，
     // 如果需要更新，你需要確保 measurementData 中包含這些字段
     // 或是當學生切換時，發送一個 HTTP 請求來加載這些歷史數據
-
     const dateInput = row.querySelector(".date-input");
     function formatDateTime(isoString) {
       const date = new Date(isoString);
@@ -314,6 +419,19 @@ function updateMeasurementTable(studentPid, measurementData) {
 
     if (dateInput && measurementData.date !== undefined)
       dateInput.value = formatDateTime(measurementData.date);
+
+    if (
+      broadcastStudents.length > 0 &&
+      studentPid === broadcastStudents[broadcastStudents.length - 1]?.pid
+    ) {
+      console.log(
+        `Received data for the last student (${studentPid}). Starting countdown.`
+      );
+      // 在填入最後一位學生的資料後，呼叫倒數計時函數
+      startUploadCountdown(60); // 啟動 60 秒倒數
+    }
+
+    
   } else {
     console.warn(`Table row for student PID "${studentPid}" not found.`);
   }
@@ -386,3 +504,4 @@ function handleSaveUpload() {
       window.location.reload();
     });
 }
+

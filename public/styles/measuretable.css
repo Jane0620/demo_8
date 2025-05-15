@@ -72,6 +72,28 @@
 #broadcast img:hover {
   transform: scale(1.1); /* 滑過時放大 */
 }
+#broadcast .end{
+  margin-top: 10px;
+}
+#broadcast .end span{
+  font-size: 16px;
+  font-weight: bold;
+  margin-right: 10px; /* 與按鈕分隔 */
+}
+#broadcast .end .timeleft{
+  font-size: 24px;
+  color: #2980b9;
+}
+#broadcast .end button{
+  background-color: #2980b9;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 5px;
+  margin: 0 10px; 
+  cursor: pointer;
+}
 table.measure-table tr.highlight {
   background-color: #2980b9; 
   color: white; 

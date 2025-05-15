@@ -120,7 +120,7 @@ function handleStartDetection() {
         <span id="name"></span>
         <img src="../assets/next.svg" id="next-student">
         </div>
-        <div id="broadcast-end"></div>
+        <div class="end" id="broadcast-end"></div>
       </div>
     `;
     pageState.container.insertAdjacentHTML("afterbegin", broadCast);
@@ -318,7 +318,7 @@ function startUploadCountdown(durationInSeconds) {
   let timeLeft = durationInSeconds; // 從指定時間開始倒數
 
   // 設定「量測完畢」的訊息，包含顯示倒數時間的 span
-  broadcastEndElement.innerHTML = `<span>量測完畢，資料將於<span id="time">${timeLeft}</span>秒後上傳</span>`;
+  broadcastEndElement.innerHTML = `<span>量測完畢，資料將於<span class="timeleft" id="time">${timeLeft}</span>秒後上傳</span>`;
 
   // 取得顯示時間的 span 元素
   const timeElement = document.getElementById("time");
@@ -420,7 +420,7 @@ function checkAndDisplayUploadButton() {
                 // 簡單粗暴的方式是，如果按鈕不存在就直接追加
                  const newButton = document.createElement('button');
                  newButton.id = uploadButtonId;
-                 newButton.textContent = "上傳所有資料";
+                 newButton.textContent = "儲存並上傳";
                  newButton.addEventListener('click', handleSaveUpload);
                  // 避免重複添加按鈕，先檢查一次，或在添加前移除舊的
                  if(broadcastEndElement.querySelector(`#${uploadButtonId}`)) {
@@ -434,7 +434,7 @@ function checkAndDisplayUploadButton() {
                  if (!existingButton) {
                      const newButton = document.createElement('button');
                      newButton.id = uploadButtonId;
-                     newButton.textContent = "上傳所有資料";
+                     newButton.textContent = "儲存並上傳";
                      newButton.addEventListener('click', handleSaveUpload);
                      broadcastEndElement.appendChild(newButton); // 追加按鈕
                      console.log("Upload button added alongside countdown.");

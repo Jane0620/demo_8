@@ -1,10 +1,8 @@
 /* 設定選單容器 */
 .settings-menu {
-  padding: 10px;
   margin-bottom: 20px;
   border-bottom: 1px solid #ddd;
 }
-
 /* 單個選項 Label 的樣式 */
 label {
   display: block; /* 使每個 label 佔據一行 */
@@ -15,71 +13,81 @@ label {
   font-size: 16px;
 }
 
-/* API 輸入框的樣式 */
-input[type="text"], [type="password"]{
-  width: 70%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-  font-size: 16px;
+.form-container {
+  max-width: 500px;
+  margin: 0 auto;
 }
-
-input[type="text"]:focus, [type="password"]:focus {
-  outline: none;
-  border: 2px solid #3498db;
-}
-
-.settings-menu button {
-  /* float: right; */
-  background-color: white;
-  border: none;
-  padding: 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-right: 2px;
-  font-size: 16px;
-}
-.settings-menu button:hover {
-  background-color: #86cfff;
-  color: white;
-  transition: background-color 0.3s ease;
-}
-
-.measurement {
-  display: block; /* 使每個 label 佔據一行 */
-  align-items: center;
-  line-height: 48px;
-  padding: 10px;
-}
-.measurement span {
-  display: inline-block;
-  align-items: center;
-  line-height: 48px;
-  margin-right: 120px;
-  color: #464646;
-  font-size: 16px;
-}
-.measurement input[type="radio"] {
-  margin-right: 10px;
-  cursor: pointer;
-}
-
-.connect-menu label{
+.buttons-container {
   display: flex;
-  text-align: left;
-  justify-content: flex-start;
+  justify-content: right;
   align-items: center;
+  margin-top: 20px;
 }
-.connect-menu span{
-  margin-right: 10px;
+.buttons-container img {
+  border: none;
+  width: 35px;
+  height: 35px;
+  padding: 5px;
+  margin-top: 20px;
+  cursor: pointer;
+  transition: transform 0.2s;
 }
-.connect-menu select {
-  width: 20%;
-  padding: 10px;
+.buttons-container img:hover {
+  transform: scale(1.1); /* 滑過時放大 */
+}
+/* 表單組（標籤+輸入框） */
+.form-group {
+  display: flex;
+  align-items: flex-start;
+}
+
+/* 標籤靠右對齊，但位置在左側 */
+.form-label {
+  width: 100px; /* 固定寬度，可根據需要調整 */
+  text-align: right;
+  padding-right: 15px;
+  font-size: 16px;
+  color: #464646;
+  flex-shrink: 0; /* 防止標籤縮小 */
+}
+
+/* 輸入框樣式 */
+.form-input {
+  flex: 1; /* 輸入框佔據剩餘空間 */
+  height: 36px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  box-sizing: border-box;
+  padding: 10px;
   font-size: 16px;
-  margin-left: 10px;
+}
+
+/* 密碼輸入框樣式 */
+input[type="password"] {
+  letter-spacing: 2px; /* 增加密碼字符間距 */
+}
+
+/* 輸入框聚焦時的樣式 */
+.form-input:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(31, 193, 200, 0.2);
+}
+
+/* 自適應小屏幕 */
+@media (max-width: 480px) {
+  .form-group {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .form-label {
+    width: 100%;
+    text-align: left;
+    padding-right: 0;
+    margin-bottom: 5px;
+  }
+  
+  .form-input {
+    width: 100%;
+  }
 }

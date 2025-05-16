@@ -15,6 +15,7 @@ import {
     const token = auth?.token;
     const container = document.getElementById('classes-container');
 
+    console.log('schoolId:', schoolId);
     if (!schoolId || !token) {
       insertTable(container, null, '請重新登入，找不到登入資訊');
       return;

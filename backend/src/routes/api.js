@@ -15,28 +15,28 @@ dotenv.config();
 const router = express.Router();
 
 // 登入 SHIS 系統
-let currentSchoolId = null; // 儲存最新的 schoolId
-let currentToken = null; // 儲存最新的 token
+// let currentSchoolId = null; // 儲存最新的 schoolId
+// let currentToken = null; // 儲存最新的 token
 
-router.post("/shis-login", async (req, res) => {
-  const { schoolId } = req.body;
+// router.post("/shis-login", async (req, res) => {
+//   const { schoolId } = req.body;
 
-  if (!schoolId) {
-    return res.status(400).json({ error: "缺少 schoolId" });
-  }
+//   if (!schoolId) {
+//     return res.status(400).json({ error: "缺少 schoolId" });
+//   }
 
-  try {
-    const token = await loginToShis(schoolId);
-    currentSchoolId = schoolId; // 儲存 schoolId
-    currentToken = token; // 儲存 token
-    res.json({ token });
-  } catch (err) {
-    console.error("SHIS 登入失敗：", err);
-    res.status(500).json({ error: "登入 SHIS 失敗" });
-  }
-});
+//   try {
+//     const token = await loginToShis(schoolId);
+//     currentSchoolId = schoolId; // 儲存 schoolId
+//     currentToken = token; // 儲存 token
+//     res.json({ token });
+//   } catch (err) {
+//     console.error("SHIS 登入失敗：", err);
+//     res.status(500).json({ error: "登入 SHIS 失敗" });
+//   }
+// });
 
-export { currentSchoolId, currentToken }; // 將這些變數匯出
+// export { currentSchoolId, currentToken }; // 將這些變數匯出
 
 // 下載最新班級和學生資料
 router.post("/download-classes", async (req, res) => {

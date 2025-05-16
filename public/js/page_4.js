@@ -232,7 +232,8 @@ async function initPage() {
         const result = await res.json();
         if (result.success) {
           alert("✅ 設定儲存成功，重新啟動伺服器");
-          window.location.assign(window.env.API_BASE_URL); // 重新登入
+          // window.location.assign(window.env.API_BASE_URL); // 重新登入
+          window.location.reload();
         } else {
           alert("❌ 儲存失敗：" + result.error);
         }

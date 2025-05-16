@@ -20,7 +20,7 @@ export function domReady() {
 
 // 修改 getAuthData 函數
 export function getAuthData() {
-  const schoolId = localStorage.getItem("school_id");
+  const schoolId = window.env.SCHOOL_ID;
   const token = localStorage.getItem("shis_token");
 
   if (!schoolId || !token) {

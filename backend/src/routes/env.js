@@ -3,7 +3,7 @@ import express from "express";
 import fs from "fs";
 import path from "path";
 // import { fileURLToPath } from "url";
-// import { exec } from "child_process";
+import { exec } from "child_process";
 
 const router = express.Router();
 const envPath = path.join(process.cwd(), ".env");
@@ -75,8 +75,10 @@ router.post("/", (req, res) => {
     fs.writeFileSync(envPath, newContent, "utf-8");
 
     res.json({ success: true, message: ".env 已更新，伺服器將重新啟動" });
-    // 這裡你可以考慮是否真的需要重新啟動伺服器，或僅是重新載入設定。
-    // `exec` 重新啟動伺服器的邏輯被註釋掉了，如果需要則取消註釋並處理權限。
+    setTimeout(() => {
+      console.log("✅ .env 已更新，準備重新啟動伺服器...");
+      process.exit(0); // 退出當前進程
+    }, 200); // 延遲 200ms，確保回應已送出
 
   } catch (err) {
     console.error("❌ 更新失敗：", err);

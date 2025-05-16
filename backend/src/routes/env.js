@@ -44,8 +44,6 @@ router.post("/", (req, res) => {
     "SCHOOL_ID",
     "SCHOOL_NAME",
     "API_KEY",
-    "DOWNLOAD_URL",
-    "UPLOAD_URL",
     "SERIAL_PATH",
     "BAUDRATE",
     "DATABITS",

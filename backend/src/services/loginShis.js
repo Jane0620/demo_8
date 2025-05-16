@@ -16,7 +16,6 @@ export async function loginToShis(schoolId) {
     },
     body: JSON.stringify({ SchoolId: schoolId })
   });
-
   const result = await res.json();
 
   if (result.result && result.data?.token) {

@@ -6,7 +6,6 @@ import * as download from "../services/downloadShis.js";
 // upload
 import { processStudentData } from "../utils/dbHandlers.js"; // 封裝進資料庫
 import * as upload from "../services/uploadToShis.js";
-import { insertUploadLog } from "../services/insertDb.js"; // 封裝進資料庫
 
 import { getAutoWhData } from "../services/serialPortRs232.js";
 

@@ -20,24 +20,25 @@ export function processData(data) {
     console.log("接收到JSON格式資料:", parsedData);
     return parsedData;
   } catch (e) {
+    // 使用從環境變數載入的正規表達式
     const regex = new RegExp(dataFormat);
     const match = data.match(regex);
 
     if (match) {
-      const gender = match[1];
-      const weight = parseFloat(match[2]);
-      const height = parseFloat(match[3]);
-      const bmi = parseFloat(match[5]);
+      // match[0] 是完整的匹配字串
+      // match[1] 是第一個捕獲群組：身高
+      // match[2] 是第二個捕獲群組：體重
+
+      const height = parseFloat(match[1]); // 提取身高並轉換為浮點數
+      const weight = parseFloat(match[2]); // 提取體重並轉換為浮點數
 
       const processedData = {
-        gender: getGenderText(gender),
-        genderCode: gender,
-        weight,
-        height,
-        bmi,
+        height: height,
+        weight: weight,
+        // 忽略其他欄位
       };
 
-      console.log("解析後資料:", processedData);
+      console.log("解析後的身高體重資料:", processedData);
       return processedData;
     }
 
@@ -46,15 +47,7 @@ export function processData(data) {
   }
 }
 
-function getGenderText(code) {
-  switch (code) {
-    case "M": return "男性";
-    case "F": return "女性";
-    case "C": return "兒童";
-    case "T": return "未知";
-    default:  return "未知";
-  }
-}
+
 
 export function getAutoWhData(callback) {
   const port = new SerialPortMock({

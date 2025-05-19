@@ -1,11 +1,9 @@
 // services/mockDataSender.js
 
 let sampleData = [
-  "STX,M,70.50,175.6,22.8,ET",
-  "STX,F,58.32,162.8,22.0,ET",
-  "STX,C,32.10,135.5,17.4,ET",
-  "STX,M,85.72,182.3,25.8,ET",
-  "STX,F,62.45,168.7,21.9,ET",
+  "STX,175.6,68.36,M,105.4,022.8,ET",
+  "STX,165.6,55.26,F,105.4,022.8,ET",
+  "STX,134.6,29.26,C,105.4,022.8,ET",
 ];
 
 let currentIndex = 0;

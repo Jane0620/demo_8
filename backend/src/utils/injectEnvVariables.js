@@ -7,6 +7,11 @@ export function injectEnvVariables(html) {
   const apiBaseUrl = process.env.API_BASE_URL;
   const schoolId = process.env.SCHOOL_ID;
   const schoolName = process.env.SCHOOL_NAME;
+  const defaultSystemName = process.env.DEFAULT_SYSTEM_NAME ;
+  const additionalSystemName = process.env.ADDITIONAL_SYSTEM_NAME;
+  const token = process.env.TOKEN;
+  const downloadUrl = process.env.DOWNLOAD_URL;
+  const uploadUrl = process.env.UPLOAD_URL;
   const serialPath = process.env.SERIAL_PATH;
   const baudRate = process.env.BAUDRATE;  
   const dataBits = process.env.DATABITS;
@@ -24,6 +29,11 @@ export function injectEnvVariables(html) {
           SCHOOL_NAME: "${schoolName}",
           MEASUREMENT_TYPE: "${measurementType}",
           SCHOOL_ID: "${schoolId}",
+          DEFAULT_SYSTEM_NAME: "${defaultSystemName}",
+          ADDITIONAL_SYSTEM_NAME: "${additionalSystemName}",
+          TOKEN: "${token}",
+          DOWNLOAD_URL: "${downloadUrl}",
+          UPLOAD_URL: "${uploadUrl}",
           SERIAL_PATH: "${serialPath}",
           BAUDRATE: "${baudRate}",
           DATABITS: "${dataBits}",

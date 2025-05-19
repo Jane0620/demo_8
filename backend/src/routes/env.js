@@ -48,6 +48,8 @@ router.post("/", (req, res) => {
     "BAUDRATE",
     "DATABITS",
     "STOPBITS",
+    "DOWNLOAD_URL",
+    "UPLOAD_URL", // 這裡的 UPLOAD_URL 是一個陣列
     // 確保這裡包含 upload-time 分頁可能新增的 key
     "UPLOAD_TIME_PERIOD", // 如果你使用了這個 key
     "UPLOAD_TIME_VALUE",  // 如果你使用了這個 key

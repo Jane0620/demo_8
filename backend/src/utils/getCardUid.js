@@ -2,7 +2,7 @@ import pcsclite from "pcsclite";
 
 const pcsc = pcsclite();
 
-export const getCardUid = () => {
+export const getCardUid = (callback) => {
   pcsc.on("reader", (reader) => {
     console.log(`偵測到讀卡機：${reader.name}`);
 
@@ -31,7 +31,10 @@ export const getCardUid = () => {
               if (sw1 === 0x90 && sw2 === 0x00) {
                 const uid = response.slice(0, -2).toString("hex").toUpperCase();
                 console.log("卡號 UID:", uid);
-
+                
+                if (typeof callback === "function") {
+                  callback(uid);
+                }
                 // ?? 這裡可以接資料庫查詢
                 // findStudentByCard(uid);
               } else {

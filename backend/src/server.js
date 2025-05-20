@@ -11,6 +11,9 @@ import { injectEnvVariables } from "./utils/injectEnvVariables.js"; // 引入注
 import setupWebSocket from "./routes/ws.js"; // 引入 WebSocket 設定函數
 import { getAutoWhData } from "./services/serialPortRs232.js"; // 引入串口數據獲取函數
 import mockControlRoutes from "./routes/mockControl.js";
+import { getCardUid } from "./utils/getCardUid.js"; // 引入 getCardUid
+import { findStudentByCardUid } from "./services/cardMeasure.js"; // 引入 findStudentByCardUid
+
 
 
 import dotenv from "dotenv";
@@ -109,4 +112,23 @@ server.listen(PORT, "0.0.0.0", () => {
     // 當串口有新資料時，透過 WebSocket 廣播給所有連接的前端客戶端
     broadcast(processedData);
   });
+
+  // 初始化讀卡機監聽
+  getCardUid(async (uid) => {
+    console.log(`server.js: 從讀卡機收到 UID: ${uid}`);
+    try {
+      const student = await findStudentByCardUid(uid); // 根據 UID 查詢學生
+      if (student) {
+        console.log("server.js: 找到學生:", student);
+        broadcast({ type: "studentInfo", data: student }); // 透過 WebSocket 廣播學生資訊
+      } else {
+        console.log("server.js: 未找到匹配的學生資訊");
+        broadcast({ type: "studentInfo", data: null, message: "未找到匹配的學生資訊" });
+      }
+    } catch (error) {
+      console.error("server.js: 查詢學生資訊時發生錯誤:", error);
+      broadcast({ type: "error", message: "查詢學生資訊時發生錯誤" });
+    }
+  });
+
 });

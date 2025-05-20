@@ -1,4 +1,4 @@
-import { domReady } from "./util.js";
+import { domReady, getAuthData, formatToISO8601UTC } from "./util.js";
 
 const messageElement = document.getElementById("message");
 
@@ -19,6 +19,13 @@ function resetDisplay() {
   }
   currentScannedStudent = null;
   currentMeasurementData = null; // 重置測量數據
+}
+
+// 延遲後重置顯示
+function resetDisplayAfterDelay(delay) {
+  setTimeout(() => {
+    resetDisplay();
+  }, delay);
 }
 // 建立連線
 function initializeWebSocket() {
@@ -50,7 +57,7 @@ function initializeWebSocket() {
       if (receivedData.type === "studentInfo") {
         // updateStudentInfoDisplay(receivedData.data, receivedData.message);
         handleStudentInfo(receivedData);
-      }else if (receivedData.type === "error"){
+      } else if (receivedData.type === "error") {
         handleError(receivedData.message);
       } else {
         // 處理來自串口或其他部分的資料，例如處理processedData
@@ -97,7 +104,7 @@ function updateStudentInfoDisplay(studentData, message) {
   }
 }
 
-function handleStudentInfo(receivedData){
+function handleStudentInfo(receivedData) {
   if (receivedData.data) {
     currentScannedStudent = receivedData.data; // 儲存當前刷卡的學生資料
     updateStudentInfoDisplay(currentScannedStudent, receivedData.message);
@@ -116,13 +123,116 @@ function handleError(message) {
   }, 3000); // 3 秒後恢復
 }
 
-function handleMeasurementData(receivedData) {
+async function handleMeasurementData(receivedData) {
   // 假設 receivedData 包含身高和體重的數據
   if (receivedData.height && receivedData.weight) {
     currentMeasurementData = receivedData; // 儲存最近一次接收到的身高體重數據
     messageElement.textContent = `身高: ${receivedData.height} cm, 體重: ${receivedData.weight} kg`;
+    handleSaveUpload();
   } else {
     messageElement.textContent = "無效的測量數據";
   }
 }
-  
+
+async function handleSaveUpload() {
+  if (!currentScannedStudent || !currentMeasurementData) {
+    console.error("當前沒有學生或測量數據可供上傳");
+    if (messageElement)
+      messageElement.textContent = "上傳失敗，請確認學生和測量數據";
+    resetDisplayAfterDelay(3000); // 3 秒後恢復
+    return; // 結束函數
+  }
+
+// 格式化日期時間為 ISO 8601 UTC 帶時區偏移量
+  const examDateFormatted = currentMeasurementData.date
+    ? formatToISO8601UTC(currentMeasurementData.date)
+    : formatToISO8601UTC(new Date().toISOString()); // 如果沒有日期，使用當前時間
+
+  const dataToUpload = {
+    Pid: currentScannedStudent.pid, // 統一證號
+    Sid: currentScannedStudent.student_id || "", // 學號 (如果沒有則為空字串)
+    No: parseInt(currentScannedStudent.class_no, 10) || 0, // 班級號碼 (確保是數字)
+    Grade: parseInt(currentScannedStudent.class_grade, 10) || 0, // 班級年級 (確保是數字)
+    Seat: parseInt(currentScannedStudent.seat_no, 10) || 0, // 座號 (假設學生資料中有 seat_no，確保是數字)
+    Height: parseFloat(currentMeasurementData.height) || 0, // 身高 (確保是數字)
+    Weight: parseFloat(currentMeasurementData.weight) || 0, // 體重 (確保是數字)
+    ExamDate: examDateFormatted, // <--- 將鍵名改為 ExamDate
+    Name: currentScannedStudent.name || "", // 添加 Name 字段，雖然後端檢查時沒有用到，但 insertHeightWeight 需要
+    // 如果還有其他測量數據，也一併包含進來，例如：
+    // Sight0L: currentMeasurementData.Sight0L,
+    // Sight0R: currentMeasurementData.Sight0R,
+    // SightL: currentMeasurementData.SightL,
+    // SightR: currentMeasurementData.MeasurementData.SightR, // 如果在 MeasurementData 內部
+    // gender: currentMeasurementData.gender, // 如果串口數據有性別
+  };
+  console.log("要上傳的數據:", dataToUpload);
+  const auth = getAuthData(); // 假設 getAuthData 來自 util.js
+  if (!auth || !auth.token) {
+    console.error("尚未登入或 token 遺失，請重新登入！");
+    if (messageElement) messageElement.textContent = "上傳失敗：請重新登入！";
+    resetDisplayAfterDelay(3000);
+    return;
+  }
+
+  const measurementType = window.env.MEASUREMENT_TYPE; // 從 localStorage 獲取
+  if (!measurementType) {
+    console.error("未找到 measurementType，無法上傳。");
+    if (messageElement)
+      messageElement.textContent = "上傳失敗：未設定量測類型！";
+    resetDisplayAfterDelay(3000);
+    return;
+  }
+
+  const payload = {
+    studentData: [dataToUpload], // API 通常期望一個學生數據的陣列，即使只有一個
+    token: auth.token,
+    measurementType: measurementType,
+  };
+
+  if (messageElement) messageElement.textContent = "正在上傳數據...";
+  console.log("發送到後端的數據：", payload.studentData);
+
+  try {
+    const response = await fetch(
+      `${window.env.API_BASE_URL}/api/save-and-upload`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response
+        .json()
+        .catch(() => ({ message: "無法解析錯誤響應" }));
+      throw new Error(
+        `伺服器錯誤 ${response.status}: ${
+          errorData.message || response.statusText
+        }`
+      );
+    }
+
+    const result = await response.json();
+
+    if (result.success) {
+      if (messageElement) messageElement.textContent = "數據已成功儲存！";
+      console.log("數據已成功儲存！", result);
+      // 上傳成功後，重置所有顯示並等待下一次刷卡
+      resetDisplayAfterDelay(2000); // 短暫顯示成功後重置頁面
+    } else {
+      if (messageElement)
+        messageElement.textContent =
+          "儲存失敗：" + (result.error || "未知錯誤");
+      console.error("儲存失敗：", result.error || "未知錯誤");
+      resetDisplayAfterDelay(3000);
+    }
+  } catch (err) {
+    console.error("儲存數據時發生錯誤：", err);
+    if (messageElement)
+      messageElement.textContent = "儲存數據時發生錯誤：" + err.message;
+    resetDisplayAfterDelay(3000);
+  }
+}

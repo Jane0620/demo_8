@@ -1,10 +1,12 @@
 import { domReady, getAuthData, formatToISO8601UTC } from "./util.js";
 
 const messageElement = document.getElementById("message");
+const iconElement = document.getElementById("icon");
 
 // 追蹤當前刷卡的學生資料和測量數據
 let currentScannedStudent = null;
 let currentMeasurementData = null; // 儲存最近一次接收到的身高體重數據
+let measurementTimeoutId = null;
 
 async function initPage() {
   domReady();
@@ -14,8 +16,16 @@ async function initPage() {
 initPage();
 
 function resetDisplay() {
+  if (measurementTimeoutId) {
+    clearTimeout(measurementTimeoutId);
+    measurementTimeoutId = null;
+  }
   if (messageElement) {
     messageElement.textContent = "請刷卡進行量測";
+  }
+  if (iconElement) {
+    // 檢查元素是否存在
+    iconElement.src = "/assets/card.svg"; // 恢復初始圖示
   }
   currentScannedStudent = null;
   currentMeasurementData = null; // 重置測量數據
@@ -48,7 +58,7 @@ function initializeWebSocket() {
     messageElement.textContent = "請刷卡進行量測";
   };
 
-  ws.onmessage = (event) => {
+  ws.onmessage = async (event) => {
     try {
       const receivedData = JSON.parse(event.data);
       console.log("Received data via WebSocket:", receivedData);
@@ -63,7 +73,7 @@ function initializeWebSocket() {
         // 處理來自串口或其他部分的資料，例如處理processedData
         // console.log("Received measurement data:", receivedData);
         // 如果有其他需要顯示的串口數據，可以在這裡處理
-        handleMeasurementData(receivedData);
+        await handleMeasurementData(receivedData);
       }
     } catch (error) {
       console.error("Error parsing WebSocket message:", error);
@@ -91,6 +101,7 @@ function initializeWebSocket() {
 function updateStudentInfoDisplay(studentData, message) {
   if (studentData) {
     messageElement.textContent = `${studentData.name} 進行量測`;
+    iconElement.src = "/assets/student.svg"; // 顯示成功的圖示
     // 您可以在這裡添加更多邏輯來顯示學生的其他資訊，例如學號、班級等
     // 例如：const studentDetailsElement = document.getElementById('student-details');
     // 如果有更多要顯示的區塊，可以在這裡更新
@@ -99,31 +110,50 @@ function updateStudentInfoDisplay(studentData, message) {
     messageElement.textContent = message || "未找到匹配的學生資訊";
     // 短暫顯示後恢復初始提示
     setTimeout(() => {
+      iconElement.src = "/assets/card.svg"; // 恢復初始圖示
       messageElement.textContent = "請刷卡進行量測";
     }, 3000); // 3 秒後恢復
   }
 }
 
 function handleStudentInfo(receivedData) {
+  if (measurementTimeoutId) {
+    clearTimeout(measurementTimeoutId);
+    measurementTimeoutId = null;
+  }
   if (receivedData.data) {
     currentScannedStudent = receivedData.data; // 儲存當前刷卡的學生資料
     updateStudentInfoDisplay(currentScannedStudent, receivedData.message);
+    currentMeasurementData = null; // 清空舊的測量數據
+
+    console.log(`已設定當前刷卡學生為: ${currentScannedStudent.name}`);
+
+    // 開始 15 秒的測量超時計時器
+    measurementTimeoutId = setTimeout(() => {
+      console.warn("測量超時：15 秒內未收到身高體重數據。");
+      if (messageElement) messageElement.textContent = "測量超時，請重新刷卡。";
+      resetDisplayAfterDelay(3000); // 3 秒後重置顯示
+    }, 15000); // 15000 毫秒 = 15 秒
   } else {
     // 如果沒有找到學生資料，顯示錯誤訊息
+    currentScannedStudent = null; // 未找到學生，重設
     messageElement.textContent = receivedData.message || "未找到匹配的學生資訊";
     setTimeout(() => {
       messageElement.textContent = "請刷卡進行量測";
     }, 3000); // 3 秒後恢復
   }
 }
-function handleError(message) {
-  messageElement.textContent = message || "發生錯誤";
-  setTimeout(() => {
-    messageElement.textContent = "請刷卡進行量測";
-  }, 3000); // 3 秒後恢復
+function handleError(errorMessage) {
+  if (messageElement) messageElement.textContent = `錯誤：${errorMessage}`;
+  if (iconElement) iconElement.src = "/assets/card.svg"; // 恢復初始圖示
+  resetDisplayAfterDelay(3000);
 }
 
 async function handleMeasurementData(receivedData) {
+  if (measurementTimeoutId) {
+    clearTimeout(measurementTimeoutId);
+    measurementTimeoutId = null;
+  }
   // 假設 receivedData 包含身高和體重的數據
   if (receivedData.height && receivedData.weight) {
     currentMeasurementData = receivedData; // 儲存最近一次接收到的身高體重數據
@@ -143,7 +173,7 @@ async function handleSaveUpload() {
     return; // 結束函數
   }
 
-// 格式化日期時間為 ISO 8601 UTC 帶時區偏移量
+  // 格式化日期時間為 ISO 8601 UTC 帶時區偏移量
   const examDateFormatted = currentMeasurementData.date
     ? formatToISO8601UTC(currentMeasurementData.date)
     : formatToISO8601UTC(new Date().toISOString()); // 如果沒有日期，使用當前時間

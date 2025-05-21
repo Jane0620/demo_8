@@ -245,13 +245,6 @@ async function initPage() {
     } else if (activeTab === "attendance") {
       tabContentContainer.innerHTML = `
         <div id="connection" class="form-container">
-        <div class="form-group">
-        <label class="form-label">硬體</label>
-            <select class="round" name="machine" id="machine">
-              <option value="height-weight">身高體重機</option>
-              <option value="vision">視力機</option>
-            </select>
-        </div>
           <div class="form-group">
             <label class="form-label">資料格式</label>
             <input class="form-input" type="text" name="dataFormat" placeholder="請輸入資料格式" value="${

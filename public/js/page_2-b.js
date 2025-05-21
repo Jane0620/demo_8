@@ -127,6 +127,7 @@ function handleStartDetection() {
 
     updateBroadcastName();
     setupBroadcastNavigation();
+    setupBroadcastOverlay();
   }
   initializeWebSocket(); // 建立連線
   // 點擊按鈕後清空按鈕
@@ -238,6 +239,41 @@ function setupBroadcastNavigation() {
       );
       updateBroadcastName();
     });
+  }
+}
+
+// 創建並控制遮罩層的函數
+function setupBroadcastOverlay() {
+  // 檢查是否已存在遮罩層，避免重複創建
+  if (!document.getElementById('broadcast-overlay')) {
+    // 創建遮罩層元素
+    const overlay = document.createElement('div');
+    overlay.id = 'broadcast-overlay';
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100%';
+    overlay.style.height = '100%';
+    overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'; // 半透明黑色
+    overlay.style.zIndex = '999'; // 確保在其他元素之下，但在廣播框之上
+    overlay.style.pointerEvents = 'all'; // 捕獲所有點擊事件
+    
+    // 將遮罩層插入到 body 的第一個元素
+    document.body.insertBefore(overlay, document.body.firstChild);
+    
+    // 確保廣播框處於最上層
+    const broadcast = document.getElementById('broadcast');
+    if (broadcast) {
+      broadcast.style.zIndex = '1001'; // 比遮罩層更高的層級
+    }
+  }
+}
+
+// 在需要移除遮罩時調用此函數
+function removeBroadcastOverlay() {
+  const overlay = document.getElementById('broadcast-overlay');
+  if (overlay) {
+    overlay.remove();
   }
 }
 
@@ -564,6 +600,7 @@ function handleSaveUpload() {
     .then((result) => {
       if (result.success) {
         alert("數據已成功儲存！");
+        removeBroadcastOverlay();
         window.location.reload();
       } else {
         alert("儲存失敗：" + (result.error || "未知錯誤"));
@@ -572,6 +609,7 @@ function handleSaveUpload() {
     .catch((err) => {
       handleFetchError(err, document.body, "儲存數據時發生錯誤");
       alert("儲存數據時發生錯誤：" + err.message);
+      removeBroadcastOverlay();
       window.location.reload();
     });
 }

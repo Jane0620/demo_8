@@ -31,7 +31,7 @@ export const getCardUid = (callback) => {
               if (sw1 === 0x90 && sw2 === 0x00) {
                 const uid = response.slice(0, -2).toString("hex").toUpperCase();
                 console.log("卡號 UID:", uid);
-                
+
                 if (typeof callback === "function") {
                   callback(uid);
                 }
@@ -52,8 +52,17 @@ export const getCardUid = (callback) => {
       }
     });
 
+    reader.on("error", (err) => {
+      console.error("讀卡機錯誤：", err);
+    });
     reader.on("end", () => {
       console.log("? 讀卡機移除");
     });
+  });
+
+  pcsc.on("error", function (err) {
+    console.error("PCSC error:", err.message);
+    // 這個錯誤處理器會捕捉到更廣泛的 PCSC 相關錯誤，例如讀卡機服務啟動失敗等
+    // 當讀卡機被拔除時，也可能觸發這個錯誤 (取決於 pcsclite 內部實現)
   });
 };

@@ -37,53 +37,63 @@
   flex-direction: column; /* 垂直排列 */
   justify-content: center;
   align-items: center;
-  min-width: 75%;
-  height: 30%;
+  min-width: 80%;
+  height: 45%;
   padding: 20px;
   background-color: rgba(247, 249, 253, 0.9); 
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
   border-radius: 8px; /* 圓角 */
 }
 
-#broadcast #name {
-  font-size: 80px;
-  font-weight: bold;
-  margin-bottom: 20px; /* 與按鈕組件分隔 */
-  text-align: center;
+#broadcast .buttons-container {
+  display: flex; /* 改為 flex 佈局 */
+  flex-direction: row; /* 水平排列 */
+  justify-content: center; /* 水平居中 */
+  align-items: center; /* 垂直居中 */
+  width: 100%; /* 確保容器有足夠寬度 */
 }
 
-#broadcast .buttons-container {
-  display: flexbox;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
+#broadcast .buttons-container span {
+  font-size: 100px;
+  font-weight: bold;
+  text-align: center;
+  white-space: nowrap; /* 防止文本換行 */
+  overflow: hidden; /* 隱藏溢出內容 */
+  text-overflow: ellipsis; /* 超出部分顯示省略號 */
+  flex: 1; /* 彈性佔用中間空間 */
+  min-width: 0; /* 允許收縮至小於內容寬度 */
 }
 
 #broadcast img {
   border: none;
-  width: 50px;
-  height: 50px;
-  padding: 5px;
-  margin: 0 70px; 
+  width: 100px;
+  height: 100px;
+  padding: 0 5px;
+  margin: 0 60px; 
   cursor: pointer;
   transition: transform 0.2s; /* 添加縮放動畫 */
+  flex-shrink: 0; /* 防止圖片被壓縮 */
 }
 
 #broadcast img:hover {
   transform: scale(1.1); /* 滑過時放大 */
 }
+
 #broadcast .end{
   margin-top: 10px;
 }
+
 #broadcast .end span{
-  font-size: 16px;
+  font-size: 20px;
   font-weight: bold;
   margin-right: 10px; /* 與按鈕分隔 */
 }
+
 #broadcast .end .timeleft{
   font-size: 24px;
   color: #2980b9;
 }
+
 #broadcast .end button{
   background-color: #2980b9;
   color: white;

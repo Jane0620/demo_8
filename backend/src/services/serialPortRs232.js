@@ -12,7 +12,7 @@ const dataBits = parseInt(process.env.DATABITS);
 const stopBits = parseInt(process.env.STOPBITS);
 const dataFormat = process.env.DATA_FORMAT;
 
-// SerialPort.binding.createPort(path);
+SerialPortMock.binding.createPort(path);
 
 export function processData(data) {
   try {
@@ -50,7 +50,7 @@ export function processData(data) {
 
 
 export function getAutoWhData(callback) {
-  const port = new SerialPort({
+  const port = new SerialPortMock({
     path,
     baudRate,
     dataBits,

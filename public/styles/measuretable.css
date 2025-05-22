@@ -65,14 +65,27 @@
 }
 
 #broadcast .buttons-container span {
-  font-size: 100px;
+  font-size: 80px;
   font-weight: bold;
   text-align: center;
-  white-space: nowrap; /* 防止文本換行 */
-  overflow: hidden; /* 隱藏溢出內容 */
-  text-overflow: ellipsis; /* 超出部分顯示省略號 */
+  white-space: normal; 
+  overflow: visible; 
+  text-overflow: clip; /* 超出部分顯示省略號 */
   flex: 1; /* 彈性佔用中間空間 */
+  line-height: 1.2;
   min-width: 0; /* 允許收縮至小於內容寬度 */
+  word-break: break-word;
+}
+.countdown-message {
+  font-size: 40px !important; /* 給倒數計時訊息一個較小的字體大小 */
+  white-space: normal !important; /* 允許換行 */
+  overflow: visible !important; /* 允許溢出，以便換行顯示 */
+  text-overflow: clip !important; /* 不顯示省略號 */
+  line-height: 1.2 !important; /* 調整行高 */
+  word-break: break-word !important; /* 防止長單詞溢出 */
+  color: #2980b9 !important; /* 例如，改變文字顏色 */
+  display: block !important; /* 讓它成為一個區塊元素，更好地控制寬高和換行 */
+  font-weight: normal !important; /* 覆蓋父元素的 bold */
 }
 
 #broadcast img {
@@ -94,13 +107,7 @@
   margin-top: 10px;
 }
 
-#broadcast .end span{
-  font-size: 20px;
-  font-weight: bold;
-  margin-right: 10px; /* 與按鈕分隔 */
-}
-
-#broadcast .end .timeleft{
+#broadcast .timeleft{
   font-size: 24px;
   color: #2980b9;
 }

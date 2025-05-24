@@ -133,7 +133,7 @@ function handleStudentInfo(receivedData) {
       console.warn("測量超時：15 秒內未收到身高體重數據。");
       if (messageElement) messageElement.textContent = "測量超時，請重新刷卡。";
       resetDisplayAfterDelay(3000); // 3 秒後重置顯示
-    }, 15000); // 15000 毫秒 = 15 秒
+    }, 12000); // 15000 毫秒 = 15 秒
   } else {
     // 如果沒有找到學生資料，顯示錯誤訊息
     currentScannedStudent = null; // 未找到學生，重設
@@ -204,7 +204,7 @@ async function handleSaveUpload() {
     return;
   }
 
-  const measurementType = window.env.MEASUREMENT_TYPE; // 從 localStorage 獲取
+  const measurementType = window.env.MEASUREMENT_TYPE; 
   if (!measurementType) {
     console.error("未找到 measurementType，無法上傳。");
     if (messageElement)

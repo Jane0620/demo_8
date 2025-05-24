@@ -358,7 +358,7 @@ function startUploadCountdown(durationInSeconds) {
   let timeLeft = durationInSeconds; // 從指定時間開始倒數
 
   // 設定「量測完畢」的訊息，包含顯示倒數時間的 span
-  nameElement.innerHTML = `<span class="countdown-message>量測完畢，資料將於<span class="timeleft" id="time">${timeLeft}</span>秒後上傳</span>`;
+  nameElement.innerHTML = `<span class="countdown-message">量測完畢，資料將於<span class="timeleft" id="time">${timeLeft}</span>秒後上傳</span>`;
 
   // 取得顯示時間的 span 元素
   const timeElement = document.getElementById("time");

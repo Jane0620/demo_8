@@ -87,88 +87,88 @@ npm install -g nodemon
      > 欄位依據API傳回資料開設，每次下載最新班級資料會清空class、students、wh、sight這4張table
   - class
      > 班級列表，清空資料庫後由API下載最新名單並輸入進資料庫
-```SQL
-CREATE TABLE classes (
-    class_id TEXT,
-    school_id TEXT,
-    grade INTEGER,
-    no INTEGER,
-    name TEXT
-    -- , UNIQUE(no, grade)
-);
-```
+    ```SQL
+    CREATE TABLE classes (
+        class_id TEXT,
+        school_id TEXT,
+        grade INTEGER,
+        no INTEGER,
+        name TEXT
+        -- , UNIQUE(no, grade)
+    );
+    ```
   - students 
     > 學生列表，清空資料庫後由API依據年級下載最新名單並輸入進資料庫
-```SQL
-CREATE TABLE students (
-    pid TEXT,                      -- 統一證號
-    sid TEXT,                      -- 學號，可空
-    class_grade INTEGER,           -- 對應班級年級
-    class_no INTEGER,              -- 對應班級編號
-    seat INTEGER,                  -- 座號
-    name TEXT,                     -- 學生姓名
-    sex TEXT,                      -- 性別 "1"=男, "2"=女
-    birth TEXT                     -- 出生年月日（字串形式）
-    -- , FOREIGN KEY (class_grade, class_no) REFERENCES classes(grade, no)
-);
-```
+    ```SQL
+    CREATE TABLE students (
+        pid TEXT,                      -- 統一證號
+        sid TEXT,                      -- 學號，可空
+        class_grade INTEGER,           -- 對應班級年級
+        class_no INTEGER,              -- 對應班級編號
+        seat INTEGER,                  -- 座號
+        name TEXT,                     -- 學生姓名
+        sex TEXT,                      -- 性別 "1"=男, "2"=女
+        birth TEXT                     -- 出生年月日（字串形式）
+        -- , FOREIGN KEY (class_grade, class_no) REFERENCES classes(grade, no)
+    );
+    ```
   - wh
     > 身高體重列表，前端輸入後將資料儲存，上傳後更新上傳時間與是否成功
-```SQL
-CREATE TABLE wh (
-    PKNO INTEGER NOT NULL,
-    pid TEXT,
-    sid TEXT,
-    no INTEGER,
-    grade INTEGER,
-    seat INTEGER,
-	sex TEXT,
-	name TEXT,
-	birth TEXT,
-    height REAL,
-    weight REAL,
-	examDate TEXT,
-	id INTERGER,
-	bmi REAL,
-	bmiCode INTERGER,
-    upload_time TEXT,
-    successed INTEGER ,
-    PRIMARY KEY (PKNO)
-);
-```
+    ```SQL
+    CREATE TABLE wh (
+        PKNO INTEGER NOT NULL,
+        pid TEXT,
+        sid TEXT,
+        no INTEGER,
+        grade INTEGER,
+        seat INTEGER,
+        sex TEXT,
+        name TEXT,
+        birth TEXT,
+        height REAL,
+        weight REAL,
+        examDate TEXT,
+        id INTERGER,
+        bmi REAL,
+        bmiCode INTERGER,
+        upload_time TEXT,
+        successed INTEGER ,
+        PRIMARY KEY (PKNO)
+    );
+    ```
   - sight
     > 視力列表，前端輸入後將資料儲存，上傳後更新上傳時間與是否成功
-```SQL
-CREATE TABLE sight (
-    PKNO INTEGER NOT NULL,
-    pid TEXT,
-    sid TEXT,
-    no INTEGER,
-    grade INTEGER,
-    seat INTEGER,
-    sex TEXT,
-    name TEXT,
-    birth TEXT,
-    sight0L REAL,
-    sight0R REAL,
-    sightL REAL,
-    sightR REAL,
-    examDate TEXT,
-    id INTEGER,
-    upload_time TEXT,
-    successed INTEGER ,
-    PRIMARY KEY (PKNO)
-);
-```
+    ```SQL
+    CREATE TABLE sight (
+        PKNO INTEGER NOT NULL,
+        pid TEXT,
+        sid TEXT,
+        no INTEGER,
+        grade INTEGER,
+        seat INTEGER,
+        sex TEXT,
+        name TEXT,
+        birth TEXT,
+        sight0L REAL,
+        sight0R REAL,
+        sightL REAL,
+        sightR REAL,
+        examDate TEXT,
+        id INTEGER,
+        upload_time TEXT,
+        successed INTEGER ,
+        PRIMARY KEY (PKNO)
+    );
+    ```
   - upload_log
-```SQL
-CREATE TABLE upload_log (
-    PKNO INTEGER NOT NULL,
-    data TEXT,
-    upload_time TEXT,
-    successed INTEGER
-);
-```
+    ```SQL
+    CREATE TABLE upload_log (
+        PKNO INTEGER NOT NULL,
+        data TEXT,
+        upload_time TEXT,
+        successed INTEGER
+    );
+    ```
 
 - 後端
 - server.js☠️
@@ -200,7 +200,8 @@ CREATE TABLE upload_log (
         > 前端修改env檔的路由
     
     - ws.js
-        > websocket伺服器，讓後端向前端發送硬體資訊
+        > websocket伺服器，讓後端向前端發送硬體資訊  
+        文件：https://www.npmjs.com/package/websocket-express
 
   - //utils
     > 工具函數，主要有啟動資料庫、執行資料庫指令、格式化上傳資料、合併上傳資料
@@ -475,9 +476,69 @@ CREATE TABLE upload_log (
             > 4. 插廣播框開始廣播 ```updateBroadcastName();```更新廣播名，```setupBroadcastNavigation();```廣播按鈕，```setupBroadcastOverlay();```廣播遮罩  
             > 5. ```initializeWebSocket();```啟動websocket連線  
             > 6. 清空開始偵測按鈕
-        - 
-
-
+        - startAutoBroadcast()
+            > 廣播推進
+        - updateBroadcastName() 
+            > 1. 插入名字
+            > 2. 插入倒數計時```startUploadCountdown(60);```的條件判斷，判斷廣播到虛擬學生(代表量測完成)時倒數計時開始，並出現上傳按鈕```checkAndDisplayUploadButton();```。   
+        - setupBroadcastNavigation()
+            > 廣播按鈕事件，分```prevButton```和```nextButton```，可以自行決定調整廣播姓名
+        - setupBroadcastOverlay()
+            > 內建函數建立遮罩 
+        - removeBroadcastOverlay()
+            > 移除遮罩
+        - initializeWebSocket()
+            > 1. 與後端建立WebSocket連線，連線失敗每3秒嘗試重新連接    
+            > 2. 處理接收到的資料並更新表格```updateMeasurementTable(studentPid, receivedData);```，收到的資料給當前正在廣播的學生，並推進廣播  
+        - updateMeasurementTable(studentPid, measurementData)
+            > 找到表格中對應學生的列並填入數值
+        - startUploadCountdown(durationInSeconds)
+            > 負責啟動並執行倒數計時，計時結束後將學生資料儲存並上傳```handleSaveUpload()```。
+        - checkAndDisplayUploadButton()☠
+            > 上傳按鈕的顯示/隱藏，檢查資料填寫判斷是否出現```areAllStudentsDataFilled()```
+        - handleSaveUpload()
+            > 1. 使用```collectStudentData();```收集要上傳的資料  
+            > 2. fetch後端路由```/save-and-upload```
+            > 3. 移除遮罩```removeBroadcastOverlay();```
+    - page_3.js 
+        > 3.html 使用的js檔，initPage()初始化頁面
+        - initPage()
+            > 1. domReady()  
+            > 2. ```initializeWebSocket()```啟動WebSocket連線，讀取卡片與等待量測數據，綁定後儲存並上傳  
+            > 3. ```resetDisplay()```回復初始狀態
+        - currentScannedStudent
+            > 當前刷卡的學生資料
+        - currentMeasurementData
+            > 接收到的數據 
+        - measurementTimeoutId
+            > 量測數據接收時間     
+        - resetDisplay()
+            > 清空接收時間、學生資料和量測數據並回復初始圖示
+        - resetDisplayAfterDelay(delay)
+            > 幾秒後resetDisplay()
+        - initializeWebSocket()
+            > 1. 啟動連線  
+            > 2. 非同步onmessage事件：根據接收到的資料類型進行處理，收到學生資料```handleStudentInfo(receivedData);```；收到量測資料```await handleMeasurementData(receivedData);```；處理錯誤訊息```handleError(receivedData.message);```  
+            > 3. 資料錯誤處理☠☠  
+            > 4. 斷線後每3秒嘗試重新連接
+        - handleStudentInfo(receivedData)
+            > 1. 接收讀卡機學生資料  
+            > 2. ```updateStudentInfoDisplay(currentScannedStudent, receivedData.message);```顯示學生姓名，並確保currentMeasurementData為空  
+            > 3. 15 秒量測時間計時，15 秒內未收到身高體重數據則重置顯示resetDisplayAfterDelay  
+            > 4. 錯誤處理，未找到匹配的學生資訊，3秒後回復刷卡量測☠☠
+        - handleError(errorMessage)
+            > 顯示錯誤訊息後，重置顯示resetDisplayAfterDelay(3000);
+        - handleMeasurementData(receivedData) 
+            > 接收身高和體重的數據，綁定資料儲存並上傳```handleSaveUpload();```
+        - handleSaveUpload()
+            > 綁定與處理資料格式， fetch後端路由save-and-upload儲存並上傳，成功後重置頁面
+    - page_4.js☠
+        > 4.html 使用的js檔，initPage()初始化頁面，全部的功能都包覆於initPage()☠☠  
+        - initPage()
+            > 1. domReady()  
+            > 2. 設定頁籤
+            > 3. onTabSwitch設定頁籤內事件
+            > 4. 按鈕儲存事件，根據當前頁籤表單內容儲存變數資料，fetch後端路由/env，更新變數後重啟系統。  
 
 
 
